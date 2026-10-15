@@ -1,0 +1,11 @@
+{
+  "name": "mogger-gym",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mogger Gym — treino personalizado, biblioteca de exercícios e gerenciamento privado de usuários",
+  "scripts": {
+    "start": "node server.js",
+    "setup-admin": "node setup-admin.js"
+  },
+  "engines": { "node": ">=18" }
+}

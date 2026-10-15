@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scale-125">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#0a0c10" />
+  <meta name="description" content="Mogger Gym — monte seu treino, acompanhe sua evolução e treine com propósito no padrão profissional." />
+  <title>Mogger Gym — Seu treino. Seu progresso.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+  <!-- Supabase JS Client v2 (Autenticação Google OAuth & Banco de Dados) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Lucide Icons (Ícones do padrão shadcn/ui) -->
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-background text-foreground antialiased">
+  <div id="app">
+    <div class="boot-screen">
+      <div class="brand-mark animate-pulse">M</div>
+      <div class="boot-word">MOGGER<span>GYM</span></div>
+      <div class="loader-line"></div>
+    </div>
+  </div>
+  <div id="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <div id="modal-root"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
