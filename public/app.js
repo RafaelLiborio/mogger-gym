@@ -15,9 +15,14 @@ const GOOGLE_ICON_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="
   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
 </svg>`;
 
+// Constantes de fallback público para Supabase
+const DEFAULT_SUPABASE_URL = '';
+const DEFAULT_SUPABASE_ANON_KEY = '';
+
 const state = {
   user: null,
   authProvider: 'local', // 'local' | 'supabase'
+  authTab: 'login', // 'login' | 'register'
   supabaseUrl: '',
   supabaseAnonKey: '',
   supabaseClient: null,
@@ -302,8 +307,8 @@ function exerciseObject(ex) {
    ============================================================================== */
 function getSupabase() {
   if (state.supabaseClient) return state.supabaseClient;
-  const url = state.supabaseUrl || localStorage.getItem('mogger_supabase_url');
-  const key = state.supabaseAnonKey || localStorage.getItem('mogger_supabase_anon_key');
+  const url = state.supabaseUrl || localStorage.getItem('mogger_supabase_url') || DEFAULT_SUPABASE_URL;
+  const key = state.supabaseAnonKey || localStorage.getItem('mogger_supabase_anon_key') || DEFAULT_SUPABASE_ANON_KEY;
   if (window.supabase && url && key) {
     try {
       state.supabaseClient = window.supabase.createClient(url, key);
@@ -467,6 +472,9 @@ async function boot() {
    TELA DE LOGIN SHADCN COM GOOGLE AUTH & SUPABASE
    ============================================================================== */
 function renderLogin(error = '', email = '') {
+  state.authTab = state.authTab || 'login';
+  const isLogin = state.authTab === 'login';
+
   app.innerHTML = `
   <main class="login-shell">
     <section class="login-story">
@@ -507,23 +515,37 @@ function renderLogin(error = '', email = '') {
           </div>
         </div>
 
-        <div class="login-step">
-          ${icon('shield')} ÁREA DE ACESSO
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab ${isLogin ? 'active' : ''}" data-action="set-auth-tab" data-tab="login" role="tab" aria-selected="${isLogin}">
+            Entrar
+          </button>
+          <button type="button" class="auth-tab ${!isLogin ? 'active' : ''}" data-action="set-auth-tab" data-tab="register" role="tab" aria-selected="${!isLogin}">
+            Criar Conta
+          </button>
         </div>
-        <h2>Entrar na plataforma</h2>
-        <p class="login-subtitle">Acesse seus treinos personalizados e continue seu progresso diário.</p>
+
+        <div class="login-step">
+          ${icon('shield')} ${isLogin ? 'ÁREA DE ACESSO' : 'NOVO CADASTRO'}
+        </div>
+        <h2>${isLogin ? 'Entrar na plataforma' : 'Criar nova conta'}</h2>
+        <p class="login-subtitle">
+          ${isLogin
+            ? 'Acesse seus treinos personalizados e continue seu progresso diário.'
+            : 'Cadastre-se gratuitamente para montar seus treinos e acompanhar sua evolução.'}
+        </p>
 
         <!-- Botão Google OAuth Shadcn -->
         <button type="button" class="btn-google" data-action="login-google">
           ${GOOGLE_ICON_SVG}
-          <span>Continuar com o Google</span>
+          <span>${isLogin ? 'Continuar com o Google' : 'Cadastrar com o Google'}</span>
         </button>
 
-        <div class="auth-divider">ou entre com e-mail</div>
+        <div class="auth-divider">${isLogin ? 'ou entre com e-mail' : 'ou crie com seus dados'}</div>
 
+        <div class="form-error ${error ? 'show' : ''}" id="login-error">${esc(error)}</div>
+
+        ${isLogin ? `
         <form id="login-form">
-          <div class="form-error ${error ? 'show' : ''}" id="login-error">${esc(error)}</div>
-
           <div class="form-group">
             <label class="form-label" for="login-email">E-mail</label>
             <input class="field" id="login-email" name="email" type="email" autocomplete="username" placeholder="voce@email.com" required value="${esc(email)}" />
@@ -542,6 +564,37 @@ function renderLogin(error = '', email = '') {
             ${icon('arrow')}
           </button>
         </form>
+        ` : `
+        <form id="register-form">
+          <div class="form-group">
+            <label class="form-label" for="register-name">Nome completo</label>
+            <input class="field" id="register-name" name="name" type="text" autocomplete="name" placeholder="Ex: Lucas Silva" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-email">E-mail</label>
+            <input class="field" id="register-email" name="email" type="email" autocomplete="username" placeholder="voce@email.com" required value="${esc(email)}" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-password">Senha (mínimo 6 caracteres)</label>
+            <div class="input-wrap">
+              <input class="field" id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Crie sua senha" required minlength="6" />
+              <button type="button" class="password-toggle" data-action="toggle-register-password">Mostrar</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-confirm">Confirmar senha</label>
+            <input class="field" id="register-confirm" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repita a senha" required minlength="6" />
+          </div>
+
+          <button class="login-submit" type="submit">
+            <span>Criar minha conta</span>
+            ${icon('arrow')}
+          </button>
+        </form>
+        `}
 
         <div class="login-footnote">
           <span style="color:hsl(var(--primary))">${icon('shield')}</span>
@@ -552,6 +605,7 @@ function renderLogin(error = '', email = '') {
   </main>`;
 
   document.getElementById('login-form')?.addEventListener('submit', handleLocalLogin);
+  document.getElementById('register-form')?.addEventListener('submit', handleRegister);
   hydrateIcons();
 }
 
@@ -574,6 +628,88 @@ async function handleLocalLogin(event) {
     showError(errorEl, err.message);
     btn.disabled = false;
     btn.innerHTML = `<span>Entrar com credenciais</span> ${icon('arrow')}`;
+    hydrateIcons(btn);
+  }
+}
+
+async function handleRegister(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const btn = form.querySelector('button[type="submit"]');
+  const name = form.elements.name.value.trim();
+  const email = form.elements.email.value.trim();
+  const password = form.elements.password.value;
+  const confirmPassword = form.elements.confirmPassword.value;
+  const errorEl = document.getElementById('login-error');
+  hideError(errorEl);
+
+  if (!name) {
+    showError(errorEl, 'Por favor, informe seu nome completo.');
+    return;
+  }
+  if (!email) {
+    showError(errorEl, 'Por favor, informe um e-mail válido.');
+    return;
+  }
+  if (password.length < 6) {
+    showError(errorEl, 'A senha deve ter no mínimo 6 caracteres.');
+    return;
+  }
+  if (password !== confirmPassword) {
+    showError(errorEl, 'As senhas digitadas não coincidem.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = 'Criando conta…';
+
+  const sb = getSupabase();
+  if (sb) {
+    try {
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            name: name
+          }
+        }
+      });
+      if (error) throw error;
+      if (data?.session?.user) {
+        toast('Conta criada com sucesso!');
+        await initSupabaseAuth();
+        await enterApp();
+        return;
+      } else {
+        toast('Conta criada! Faça login com suas credenciais.', 'success');
+        state.authTab = 'login';
+        renderLogin('', email);
+        return;
+      }
+    } catch (sbErr) {
+      showError(errorEl, sbErr.message || 'Falha ao criar conta no Supabase.');
+      btn.disabled = false;
+      btn.innerHTML = `<span>Criar minha conta</span> ${icon('arrow')}`;
+      hydrateIcons(btn);
+      return;
+    }
+  }
+
+  try {
+    const data = await api('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password })
+    });
+    toast('Conta criada com sucesso!');
+    state.user = data.user;
+    state.authProvider = 'local';
+    await enterApp();
+  } catch (err) {
+    showError(errorEl, err.message);
+    btn.disabled = false;
+    btn.innerHTML = `<span>Criar minha conta</span> ${icon('arrow')}`;
     hydrateIcons(btn);
   }
 }
@@ -2426,11 +2562,30 @@ document.addEventListener('click', async event => {
     case 'open-supabase-modal':
       openSupabaseConfigModal();
       break;
+    case 'set-auth-tab': {
+      const tab = el.dataset.tab;
+      if (tab) {
+        state.authTab = tab;
+        renderLogin();
+      }
+      break;
+    }
     case 'toggle-password': {
       const input = document.getElementById('login-password');
       if (input) {
         input.type = input.type === 'password' ? 'text' : 'password';
         el.textContent = input.type === 'password' ? 'Mostrar' : 'Ocultar';
+      }
+      break;
+    }
+    case 'toggle-register-password': {
+      const pass = document.getElementById('register-password');
+      const confirm = document.getElementById('register-confirm');
+      if (pass) {
+        const nextType = pass.type === 'password' ? 'text' : 'password';
+        pass.type = nextType;
+        if (confirm) confirm.type = nextType;
+        el.textContent = nextType === 'password' ? 'Mostrar' : 'Ocultar';
       }
       break;
     }

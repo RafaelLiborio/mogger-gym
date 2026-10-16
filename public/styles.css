@@ -363,6 +363,35 @@ a {
   display: none;
 }
 
+.auth-tabs {
+  display: flex;
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 1.4rem;
+}
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 0.55rem 0.8rem;
+  border-radius: calc(var(--radius-md) - 3px);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  transition: all 0.16s ease;
+}
+.auth-tab:hover {
+  color: hsl(var(--foreground));
+}
+.auth-tab.active {
+  background: hsl(var(--card));
+  color: hsl(var(--primary));
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
 .login-step {
   display: inline-flex;
   align-items: center;

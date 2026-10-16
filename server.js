@@ -158,6 +158,34 @@ async function routeApi(req, res, url) {
       sessions.set(token, { userId: found.id, expiresAt: Date.now() + SESSION_TTL });
       return json(res, 200, { user: safeUser(found) }, { 'Set-Cookie': cookieHeader(token) });
     }
+    if (pathname === '/api/auth/register' && method === 'POST') {
+      const body = await readBody(req);
+      const name = clean(body.name, 80);
+      const email = clean(body.email, 254).toLowerCase();
+      const password = String(body.password || '');
+      if (!name || !validEmail(email) || password.length < 6) {
+        return json(res, 400, { error: 'Informe nome, e-mail válido e senha com no mínimo 6 caracteres.' });
+      }
+      if (store.users.some(u => u.email === email)) {
+        return json(res, 409, { error: 'Já existe uma conta com esse e-mail.' });
+      }
+      const hashed = await hashPassword(password);
+      const isFirst = !store.users.some(u => u.role === 'admin');
+      const newUser = {
+        id: id(),
+        name,
+        email,
+        ...hashed,
+        role: isFirst ? 'admin' : 'member',
+        active: true,
+        createdAt: new Date().toISOString()
+      };
+      store.users.push(newUser);
+      await saveStore(store);
+      const token = crypto.randomBytes(32).toString('base64url');
+      sessions.set(token, { userId: newUser.id, expiresAt: Date.now() + SESSION_TTL });
+      return json(res, 201, { user: safeUser(newUser) }, { 'Set-Cookie': cookieHeader(token) });
+    }
     if (pathname === '/api/auth/logout' && method === 'POST') {
       const token = cookies(req).mogger_session;
       if (token) sessions.delete(token);
