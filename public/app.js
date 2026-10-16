@@ -2895,7 +2895,7 @@ function openUserProfileModal() {
           <div class="panel" style="padding:0.9rem;background:hsl(var(--popover))">
             <div style="font-size:0.72rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;margin-bottom:6px">Status da Conta</div>
             <div style="display:flex;align-items:center;gap:0.5rem">
-              <span class="status-chip">${state.authProvider === 'supabase' ? 'Google / Supabase' : (state.user.role === 'admin' ? 'Administrador' : 'Membro Mogger')}</span>
+              <span class="status-chip">${state.user.role === 'admin' ? 'Administrador' : 'Membro Ativo'}</span>
             </div>
           </div>
 
@@ -2908,9 +2908,11 @@ function openUserProfileModal() {
             </div>
           </div>
 
-          <button class="btn btn-outline" data-action="open-supabase-modal" style="width:100%;justify-content:flex-start;padding:0.85rem">
-            ${icon('settings')} Configurar Banco Supabase
-          </button>
+          ${state.user.role === 'admin' ? `
+            <button class="btn btn-outline" data-action="open-supabase-modal" style="width:100%;justify-content:flex-start;padding:0.85rem">
+              ${icon('settings')} Configurar Banco Supabase
+            </button>
+          ` : ''}
         </div>
 
         <div class="modal-actions" style="margin-top:1.2rem">
@@ -3102,7 +3104,9 @@ document.addEventListener('click', async event => {
       await signInWithGoogle();
       break;
     case 'open-supabase-modal':
-      openSupabaseConfigModal();
+      if (state.user && state.user.role === 'admin') {
+        openSupabaseConfigModal();
+      }
       break;
     case 'open-user-profile':
       openUserProfileModal();
