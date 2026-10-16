@@ -149,12 +149,63 @@ function initials(name) { return String(name || '?').trim().split(/\s+/).slice(0
 function firstName(name) { return String(name || '').trim().split(/\s+/)[0] || 'atleta'; }
 function pretty(value) { return String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 function translateExercise(name) {
-  const exact = String(name || '').toLowerCase().trim();
+  let exact = String(name || '').toLowerCase().trim();
   if (EXERCISE_TRANSLATIONS[exact]) return EXERCISE_TRANSLATIONS[exact];
+  
+  // Limpeza de sufixos de gênero comuns na biblioteca original
+  exact = exact.replace(/\s*\((male|female)\)/gi, '').trim();
+  if (EXERCISE_TRANSLATIONS[exact]) return EXERCISE_TRANSLATIONS[exact];
+
   for (const [key, value] of Object.entries(EXERCISE_TRANSLATIONS)) {
     if (exact.startsWith(key + ' ')) return value + ' ' + pretty(exact.slice(key.length + 1));
   }
-  return pretty(name);
+
+  // Tradução inteligente por termos comuns no nome
+  let res = exact;
+  const nameDictionary = [
+    [/\barms apart circular toe touch\b/gi, 'Toque no pé circular com braços abertos'],
+    [/\bcircular toe touch\b/gi, 'Toque no pé em círculo'],
+    [/\btoe touch\b/gi, 'Toque no pé'],
+    [/\barms apart\b/gi, 'com braços abertos'],
+    [/\bjumping jack\b/gi, 'Polichinelo'],
+    [/\bmountain climber\b/gi, 'Escalador'],
+    [/\bbench press\b/gi, 'Supino'],
+    [/\bincline\b/gi, 'inclinado'],
+    [/\bdecline\b/gi, 'declinado'],
+    [/\bsquat\b/gi, 'Agachamento'],
+    [/\bdeadlift\b/gi, 'Levantamento terra'],
+    [/\blunge\b/gi, 'Afundo'],
+    [/\bcurl\b/gi, 'Rosca'],
+    [/\bextension\b/gi, 'Extensão'],
+    [/\braise\b/gi, 'Elevação'],
+    [/\bpress\b/gi, 'Desenvolvimento'],
+    [/\brow\b/gi, 'Remada'],
+    [/\bpull\b/gi, 'Puxada'],
+    [/\bpush\b/gi, 'Empurrada'],
+    [/\bdip\b/gi, 'Mergulho'],
+    [/\bcrunch\b/gi, 'Abdominal crunch'],
+    [/\bplank\b/gi, 'Prancha'],
+    [/\bshrug\b/gi, 'Encolhimento'],
+    [/\bfly\b/gi, 'Crucifixo'],
+    [/\bbarbell\b/gi, 'com barra'],
+    [/\bdumbbell\b/gi, 'com halteres'],
+    [/\bcable\b/gi, 'na polia'],
+    [/\bmachine\b/gi, 'na máquina'],
+    [/\bbodyweight\b/gi, 'livre'],
+    [/\bseated\b/gi, 'sentado'],
+    [/\bstanding\b/gi, 'em pé'],
+    [/\blying\b/gi, 'deitado'],
+    [/\blateral\b/gi, 'lateral'],
+    [/\bfront\b/gi, 'frontal'],
+    [/\breverse\b/gi, 'reverso'],
+    [/\boverhead\b/gi, 'acima da cabeça']
+  ];
+
+  for (const [pattern, rep] of nameDictionary) {
+    res = res.replace(pattern, rep);
+  }
+
+  return pretty(res);
 }
 function labelBody(value) { const v = String(value || '').toLowerCase(); return BODY_LABELS[v] || pretty(value); }
 function labelMuscle(value) { const v = String(value || '').toLowerCase(); return MUSCLE_LABELS[v] || pretty(value); }
@@ -181,13 +232,17 @@ function translateInstruction(text) {
     [/Lie flat on your back with your hands placed behind your head\.?/gi, 'Deite-se de costas com as mãos posicionadas atrás da cabeça.'],
     [/Lie flat on a bench with your feet flat on the floor\.?/gi, 'Deite-se no banco reto com os pés bem apoiados no chão.'],
     [/Stand with your feet shoulder-width apart and your arms extended straight down by your sides\.?/gi, 'Fique em pé com os pés na largura dos ombros e os braços estendidos ao lado do corpo.'],
+    [/Stand with your feet shoulder-width apart and arms extended to the sides\.?/gi, 'Fique em pé com os pés na largura dos ombros e os braços estendidos para os lados.'],
     [/Stand with your feet shoulder-width apart\.?/gi, 'Fique em pé com os pés na largura dos ombros.'],
     [/Stand upright with your feet hip-width apart\.?/gi, 'Fique em pé ereto com os pés na largura do quadril.'],
     [/Stand upright with your feet shoulder-width apart\.?/gi, 'Fique em pé ereto com os pés na largura dos ombros.'],
-    [/Keeping your back straight and your core engaged,?/gi, 'Mantendo a coluna reta e o abdômen contraído,'],
+    [/Keeping your back straight and your core engaged,?/gi, 'Mantendo a coluna alinhada e o abdômen contraído,'],
     [/Keeping your core engaged and your back straight,?/gi, 'Mantendo o abdômen contraído e a postura alinhada,'],
+    [/Keeping your legs straight,?/gi, 'Mantendo as pernas estendidas,'],
+    [/Keeping your arms straight,?/gi, 'Mantendo os braços estendidos,'],
     [/Engaging your abs,?/gi, 'Contraindo o abdômen,'],
     [/Return to the starting position and repeat the movement on the opposite side,?/gi, 'Retorne à posição inicial e repita o movimento do lado oposto,'],
+    [/Return to the starting position and repeat on the other side\.?/gi, 'Retorne à posição inicial e repita com o outro lado.'],
     [/Repeat on the other side\.?/gi, 'Repita o movimento para o outro lado.'],
     [/Slowly return to the starting position\.?/gi, 'Retorne de forma controlada à posição inicial.'],
     [/Slowly lower the weights? back down\.?/gi, 'Abaixe a carga de forma controlada.'],
@@ -217,8 +272,8 @@ function translateInstruction(text) {
     [/\bneutral grip\b/gi, 'pegada neutra'],
     [/\bupper body\b/gi, 'tronco superior'],
     [/\blower body\b/gi, 'membros inferiores'],
-    [/\bcore engaged\b/gi, 'core contraído'],
-    [/\bback straight\b/gi, 'coluna alinhada'],
+    [/\bcore engaged\b/gi, 'abdômen ativado'],
+    [/\bback straight\b/gi, 'coluna reta'],
     [/\bright arm\b/gi, 'braço direito'],
     [/\bleft arm\b/gi, 'braço esquerdo'],
     [/\bright leg\b/gi, 'perna direita'],
@@ -229,6 +284,46 @@ function translateInstruction(text) {
     [/\bleft elbow\b/gi, 'cotovelo esquerdo'],
     [/\bright hand\b/gi, 'mão direita'],
     [/\bleft hand\b/gi, 'mão esquerda'],
+    [/\bright foot\b/gi, 'pé direito'],
+    [/\bleft foot\b/gi, 'pé esquerdo'],
+    [/\band arms extended to the sides\b/gi, 'e os braços estendidos para as laterais'],
+    [/\barms extended to the sides\b/gi, 'braços estendidos para as laterais'],
+    [/\barms extended\b/gi, 'braços estendidos'],
+    [/\blegs extended\b/gi, 'pernas estendidas'],
+    [/\bknees bent\b/gi, 'joelhos flexionados'],
+    [/\bbend forward at the waist\b/gi, 'incline-se para a frente a partir da cintura'],
+    [/\bbend forward\b/gi, 'incline-se para a frente'],
+    [/\breach down towards your toes\b/gi, 'alcance em direção aos dedos dos pés'],
+    [/\breach down towards\b/gi, 'alcance em direção a'],
+    [/\breach down\b/gi, 'alcance para baixo'],
+    [/\breaching towards\b/gi, 'alcançando em direção a'],
+    [/\breach towards\b/gi, 'alcance em direção a'],
+    [/\bwith your\b/gi, 'com sua'],
+    [/\bwith both\b/gi, 'com ambos os'],
+    [/\bas you reach down\b/gi, 'ao se inclinar para baixo'],
+    [/\bas you lower\b/gi, 'ao descer'],
+    [/\bas you lift\b/gi, 'ao levantar'],
+    [/\bas you push\b/gi, 'ao empurrar'],
+    [/\bsimultaneously lift\b/gi, 'levante simultaneamente'],
+    [/\blift\b/gi, 'eleve'],
+    [/\blifting up\b/gi, 'levantando'],
+    [/\blifting\b/gi, 'levantando'],
+    [/\blift up\b/gi, 'eleve'],
+    [/\braise\b/gi, 'eleve'],
+    [/\blower\b/gi, 'abaixe'],
+    [/\bstraight up\b/gi, 'direto para cima'],
+    [/\bstraight down\b/gi, 'direto para baixo'],
+    [/\bstraight behind you\b/gi, 'estendida para trás'],
+    [/\bbehind you\b/gi, 'atrás de você'],
+    [/\bin front of you\b/gi, 'na sua frente'],
+    [/\bmaintaining balance\b/gi, 'mantendo o equilíbrio'],
+    [/\bmaintain balance\b/gi, 'mantenha o equilíbrio'],
+    [/\breturn to the\b/gi, 'retorne para a'],
+    [/\breturn to\b/gi, 'retorne à'],
+    [/\breturn\b/gi, 'retorne'],
+    [/\band repeat the movement\b/gi, 'e repita o movimento'],
+    [/\band repeat\b/gi, 'e repita'],
+    [/\brepeat the movement\b/gi, 'repita o movimento'],
     [/\bbarbell\b/gi, 'barra'],
     [/\bdumbbells\b/gi, 'halteres'],
     [/\bdumbbell\b/gi, 'halter'],
@@ -243,11 +338,14 @@ function translateInstruction(text) {
     [/\belbow\b/gi, 'cotovelo'],
     [/\bshoulders\b/gi, 'ombros'],
     [/\bshoulder\b/gi, 'ombro'],
-    [/\bchest\b/gi, 'peito'],
+    [/\bchest\b/gi, 'peitoral'],
     [/\bthighs\b/gi, 'coxas'],
     [/\bhips\b/gi, 'quadril'],
+    [/\bwaist\b/gi, 'cintura'],
     [/\bfeet\b/gi, 'pés'],
     [/\bfoot\b/gi, 'pé'],
+    [/\btoes\b/gi, 'pontas dos pés'],
+    [/\btoe\b/gi, 'ponta do pé'],
     [/\bhands\b/gi, 'mãos'],
     [/\bhand\b/gi, 'mão'],
     [/\bhead\b/gi, 'cabeça'],
@@ -256,9 +354,8 @@ function translateInstruction(text) {
     [/\bsimultaneously\b/gi, 'simultaneamente'],
     [/\bstraightening\b/gi, 'estendendo'],
     [/\bbending\b/gi, 'flexionando'],
-    [/\blifting\b/gi, 'levantando'],
     [/\blowering\b/gi, 'abaixando'],
-    [/\bstraight\b/gi, 'reto'],
+    [/\bstraight\b/gi, 'estendido'],
     [/\bdesired number of repetitions\b/gi, 'número desejado de repetições']
   ];
 
