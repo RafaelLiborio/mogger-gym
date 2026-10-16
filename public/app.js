@@ -16,8 +16,8 @@ const GOOGLE_ICON_SVG = `<svg viewBox="0 0 24 24" width="20" height="20" xmlns="
 </svg>`;
 
 // Constantes de fallback público para Supabase
-const DEFAULT_SUPABASE_URL = '';
-const DEFAULT_SUPABASE_ANON_KEY = '';
+const DEFAULT_SUPABASE_URL = 'https://iqndsdpaqgpampppdfnr.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_wjLanuMSiPOqVpPC1IxiIg_g3_Xnv3F';
 
 const state = {
   user: null,
@@ -924,6 +924,14 @@ async function handleLocalLogin(event) {
   btn.disabled = true;
   btn.innerHTML = 'Conectando…';
   try {
+    const sb = getSupabase();
+    if (sb) {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await initSupabaseAuth();
+      await enterApp();
+      return;
+    }
     const data = await api('/api/auth/login', { method:'POST', body:JSON.stringify({ email, password }) });
     state.user = data.user;
     state.authProvider = 'local';
