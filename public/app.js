@@ -1193,7 +1193,7 @@ function workoutRow(workout, index = 0) {
         <span>${esc(workout.focus || 'Hipertrofia')} · ${count} exercício${count===1?'':'s'}</span>
       </div>
       <span class="workout-tag">${workout.days || 4}x / sem</span>
-      <button class="icon-button" data-action="edit-workout" data-id="${esc(workout.id)}" aria-label="Editar treino" title="Editar treino">
+      <button class="icon-button" data-action="view-workout" data-id="${esc(workout.id)}" aria-label="Visualizar treino" title="Visualizar treino">
         ${icon('arrow')}
       </button>
     </div>`;
@@ -1267,19 +1267,22 @@ function renderWorkouts() {
             </div>
 
             <div style="display:flex;gap:0.6rem;margin-top:1.2rem;flex-wrap:wrap">
-  <button class="btn btn-outline" style="flex:1" data-action="edit-workout" data-id="${esc(w.id)}">
-    ${icon('edit')} Editar
-  </button>
-  <button class="btn btn-primary" style="flex:1" data-action="complete-workout" data-id="${esc(w.id)}">
-    ${icon('check')} Concluir
-  </button>
-  <button class="btn btn-ghost btn-small" data-action="duplicate-workout" data-id="${esc(w.id)}" title="Duplicar treino">
-    ${icon('layers')} Duplicar
-  </button>
-  <button class="btn btn-danger btn-small" data-action="delete-workout" data-id="${esc(w.id)}" title="Excluir">
-    ${icon('trash')}
-  </button>
-</div>
+              <button class="btn btn-primary" style="flex:1" data-action="view-workout" data-id="${esc(w.id)}">
+                ${icon('activity')} Visualizar
+              </button>
+              <button class="btn btn-outline" style="flex:1" data-action="edit-workout" data-id="${esc(w.id)}">
+                ${icon('edit')} Editar
+              </button>
+              <button class="btn btn-outline" style="flex:1" data-action="complete-workout" data-id="${esc(w.id)}">
+                ${icon('check')} Concluir
+              </button>
+              <button class="btn btn-ghost btn-small" data-action="duplicate-workout" data-id="${esc(w.id)}" title="Duplicar treino">
+                ${icon('layers')} Duplicar
+              </button>
+              <button class="btn btn-danger btn-small" data-action="delete-workout" data-id="${esc(w.id)}" title="Excluir">
+                ${icon('trash')}
+              </button>
+            </div>
           </section>
         `).join('')}
       </div>
@@ -1932,6 +1935,89 @@ function openEditWorkout(idValue) {
   state.page = 'builder';
   renderApp();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * VISUALIZAR TREINO — Exibe todos os exercícios com GIF, séries, reps e descanso
+ */
+function openViewWorkout(workoutId) {
+  const workout = state.workouts.find(w => w.id === workoutId);
+  if (!workout) return;
+  const exercises = workout.exercises || [];
+
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-action="backdrop-close">
+      <section class="modal modal-wide" role="dialog" aria-modal="true" style="max-height:92vh;display:flex;flex-direction:column">
+        <div class="modal-head">
+          <div>
+            <h3>${esc(workout.title)}</h3>
+            <p>${esc(workout.focus || 'Hipertrofia')} · ${exercises.length} exercício${exercises.length === 1 ? '' : 's'} · ${workout.days || 4}x/sem</p>
+          </div>
+          <button class="modal-close" data-action="close-modal" aria-label="Fechar">
+            ${icon('x')}
+          </button>
+        </div>
+
+        <div style="overflow-y:auto;flex:1;padding:0.5rem 0">
+          ${exercises.length ? exercises.map((ex, i) => {
+            const src = gifUrl(ex);
+            const name = translateExercise(ex.name);
+            const target = ex.targetMuscles?.[0] ? labelMuscle(ex.targetMuscles[0]) : (ex.bodyParts?.[0] ? labelBody(ex.bodyParts[0]) : 'Geral');
+            return `
+              <div class="view-exercise-card" style="display:flex;gap:1rem;align-items:flex-start;padding:1rem;border-bottom:1px solid hsl(var(--border));${i === 0 ? 'border-top:1px solid hsl(var(--border));' : ''}">
+                <div style="flex-shrink:0;width:120px;height:120px;border-radius:var(--radius-md);overflow:hidden;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center">
+                  ${src
+                    ? `<img src="${esc(src)}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                    : ''}
+                  <div class="media-fallback" style="display:${src ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:4px;color:hsl(var(--muted-foreground))">
+                    ${icon('dumbbell')}
+                    <small style="font-size:0.65rem">Sem GIF</small>
+                  </div>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <strong style="font-size:1rem;display:block;margin-bottom:4px">${esc(name)}</strong>
+                  <span class="meta-chip" style="margin-bottom:8px;display:inline-block">${esc(target)}</span>
+                  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:6px">
+                    <div style="text-align:center">
+                      <div style="font-size:1.15rem;font-weight:800;color:hsl(var(--primary))">${ex.sets || 3}</div>
+                      <div style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Séries</div>
+                    </div>
+                    <div style="text-align:center">
+                      <div style="font-size:1.15rem;font-weight:800;color:hsl(var(--foreground))">${esc(ex.reps || '8–12')}</div>
+                      <div style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Reps</div>
+                    </div>
+                    <div style="text-align:center">
+                      <div style="font-size:1.15rem;font-weight:800;color:hsl(var(--foreground))">${ex.rest || 90}s</div>
+                      <div style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Descanso</div>
+                    </div>
+                  </div>
+                </div>
+              </div>`;
+          }).join('') : `
+            <div class="empty-state" style="padding:2rem">
+              <div class="empty-orb">${icon('dumbbell')}</div>
+              <h4>Nenhum exercício neste treino</h4>
+              <p>Edite o treino para adicionar exercícios.</p>
+            </div>
+          `}
+        </div>
+
+        ${workout.notes ? `
+          <div style="padding:0.75rem 1rem;border-top:1px solid hsl(var(--border));font-size:0.85rem;color:hsl(var(--muted-foreground))">
+            <strong>Anotações:</strong> ${esc(workout.notes)}
+          </div>
+        ` : ''}
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" data-action="close-modal">Fechar</button>
+          <button class="btn btn-primary" data-action="edit-workout" data-id="${esc(workout.id)}">
+            ${icon('edit')} Editar treino
+          </button>
+        </div>
+      </section>
+    </div>`;
+
+  hydrateIcons(modalRoot);
 }
 
 async function duplicateWorkout(workoutId) {
@@ -2760,6 +2846,9 @@ document.addEventListener('click', async event => {
       break;
     case 'new-workout':
       openNewWorkout();
+      break;
+    case 'view-workout':
+      openViewWorkout(idValue);
       break;
     case 'edit-workout':
       openEditWorkout(idValue);

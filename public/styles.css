@@ -610,6 +610,9 @@ a {
   flex-direction: column;
   gap: 0.35rem;
 }
+.nav-label.mobile-only {
+  display: none;
+}
 
 /* Itens de Navegação com Ícones Refinados */
 .nav-item {
