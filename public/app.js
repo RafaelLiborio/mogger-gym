@@ -435,29 +435,31 @@ async function boot() {
       const config = await api('/api/config/supabase');
       if (config.supabaseUrl) state.supabaseUrl = config.supabaseUrl;
       if (config.supabaseAnonKey) state.supabaseAnonKey = config.supabaseAnonKey;
-    } catch (e) { /* continua */ }
+    } catch (e) { /* continua normalmente */ }
 
-    // 2. Verificar autenticação Supabase (Google OAuth)
-    const sbUser = await initSupabaseAuth();
-    if (sbUser) {
-      await enterApp();
-      return;
-    }
+    // 2. Verificar se já há sessão ativa do Supabase (Google OAuth)
+    try {
+      const sbUser = await initSupabaseAuth();
+      if (sbUser) {
+        await enterApp();
+        return;
+      }
+    } catch (e) { console.warn('Supabase auth:', e); }
 
-    // 3. Fallback: verificar servidor local
-    const health = await api('/api/health');
-    state.adminConfigured = health.administratorConfigured;
-    const { user } = await api('/api/auth/me');
-    state.user = user;
-    if (user) {
-      state.authProvider = 'local';
-      await enterApp();
-    } else {
-      renderLogin();
-    }
+    // 3. Fallback: verificar sessão tradicional
+    try {
+      const { user } = await api('/api/auth/me');
+      if (user) {
+        state.user = user;
+        state.authProvider = 'local';
+        await enterApp();
+        return;
+      }
+    } catch (e) { /* sem sessão prévia */ }
+
+    renderLogin();
   } catch (err) {
-    // Se não conectar ao servidor local, mas houver Supabase configurado, permite login
-    renderLogin(err.message);
+    renderLogin();
   }
 }
 

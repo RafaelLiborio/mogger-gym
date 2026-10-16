@@ -308,6 +308,9 @@ const server = http.createServer(async (req, res) => {
 });
 
 module.exports = server;
+module.exports.server = server;
+module.exports.routeApi = routeApi;
+module.exports.serveStatic = serveStatic;
 
 if (require.main === module && !IS_VERCEL) {
   ensureStore().then(() => server.listen(PORT, HOST, () => {
