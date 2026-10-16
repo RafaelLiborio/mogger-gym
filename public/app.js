@@ -624,7 +624,7 @@ async function initSupabaseAuth() {
         name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Usuário Google',
         email: u.email,
         avatar: u.user_metadata?.avatar_url || '',
-        role: 'member',
+        role: (u.email && u.email.toLowerCase() === 'rafaelliborio57@gmail.com') ? 'admin' : 'member',
         createdAt: u.created_at || new Date().toISOString()
       };
       state.authProvider = 'supabase';
@@ -2484,7 +2484,7 @@ async function deleteWorkout(workoutId) {
    MODAIS SHADCN COM GIFS E INTERATIVIDADE
    ============================================================================== */
 function openPicker() {
-  state.pickerSearch = '';
+  if (state.pickerSearch === undefined) state.pickerSearch = '';
   modalRoot.innerHTML = `
     <div class="modal-backdrop" data-action="backdrop-close">
       <section class="modal modal-wide" role="dialog" aria-modal="true">
@@ -2501,7 +2501,7 @@ function openPicker() {
         <div class="filter-bar">
           <div class="search-box">
             <span class="search-glass">${icon('search')}</span>
-            <input class="field" id="picker-search" placeholder="Buscar exercício por nome…" value="" />
+            <input class="field" id="picker-search" placeholder="Buscar exercício por nome…" value="${esc(state.pickerSearch || '')}" />
           </div>
           <span class="result-count" id="picker-count"></span>
         </div>
@@ -2531,7 +2531,7 @@ function openPicker() {
 }
 
 function filteredPickerExercises() {
-  const query = state.pickerSearch.toLocaleLowerCase('pt-BR').trim();
+  const query = (state.pickerSearch || '').toLocaleLowerCase('pt-BR').trim();
   return state.exercises.filter(ex => {
     const hay = [
       ex.name,
@@ -2548,32 +2548,66 @@ function renderPickerResults() {
   if (!state.exercises.length) return `<div class="empty-state"><p>Carregando biblioteca…</p></div>`;
   if (!items.length) return `<div class="empty-state"><p>Nenhum exercício encontrado com esse nome.</p></div>`;
 
-  return items.map(ex => `
-    <div class="picker-exercise">
-      <div class="builder-thumb">
-        ${gifUrl(ex) ? `
-          <img src="${esc(gifUrl(ex))}" alt="" loading="lazy" onerror="this.style.display='none'">
-        ` : `<span style="color:hsl(var(--muted-foreground))">${icon('dumbbell')}</span>`}
+  return items.map(ex => {
+    const isAdded = state.draft?.exercises?.some(e => String(e.id) === String(ex.id));
+    return `
+      <div class="picker-exercise ${isAdded ? 'is-selected' : ''}" data-id="${esc(ex.id)}">
+        <div class="builder-thumb" data-action="picker-details" data-id="${esc(ex.id)}" role="button" title="Ver demonstração e técnica">
+          ${gifUrl(ex) ? `
+            <img src="${esc(gifUrl(ex))}" alt="" loading="lazy" onerror="this.style.display='none'">
+            <span class="thumb-play-hint">${icon('activity')}</span>
+          ` : `<span style="color:hsl(var(--muted-foreground))">${icon('dumbbell')}</span>`}
+        </div>
+        <div class="builder-ex-info" data-action="picker-details" data-id="${esc(ex.id)}" role="button" tabindex="0" title="Ver demonstração e técnica">
+          <strong>${esc(translateExercise(ex.name))}</strong>
+          <span>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))} · ${esc(labelEquipment(ex.equipment?.[0] || 'Vários'))}</span>
+          <small class="picker-preview-hint">${icon('activity')} Toque para visualizar</small>
+        </div>
+        <button class="btn ${isAdded ? 'btn-outline is-selected' : 'btn-primary'} btn-small" data-action="picker-toggle" data-id="${esc(ex.id)}">
+          ${isAdded ? `${icon('check')} Adicionado` : `${icon('plus')} Adicionar`}
+        </button>
       </div>
-      <div class="builder-ex-info">
-        <strong>${esc(translateExercise(ex.name))}</strong>
-        <span>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))} · ${esc(labelEquipment(ex.equipment?.[0] || 'Vários'))}</span>
-      </div>
-      <button class="btn btn-primary btn-small" data-action="picker-add" data-id="${esc(ex.id)}">
-        ${icon('plus')} Adicionar
-      </button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
-function addExercise(idValue) {
-  const ex = state.exercises.find(e => String(e.id) === String(idValue));
-  if (!ex || !state.draft) return;
-  if (state.draft.exercises.some(e => String(e.id) === String(ex.id))) {
-    toast('Esse exercício já consta na rotina.', 'error');
-    return;
+function togglePickerExercise(idValue, triggerEl) {
+  if (!state.draft) {
+    state.draft = newDraft();
+    state.editingWorkoutId = null;
+    state.page = 'builder';
   }
-  state.draft.exercises.push({ ...exerciseObject(ex), sets: 3, reps: '8–12', rest: 90 });
+  const ex = state.exercises.find(e => String(e.id) === String(idValue));
+  if (!ex) return;
+  const idx = state.draft.exercises.findIndex(e => String(e.id) === String(ex.id));
+  const card = triggerEl ? triggerEl.closest('.picker-exercise') : document.querySelector(`.picker-exercise[data-id="${idValue}"]`);
+
+  if (idx >= 0) {
+    state.draft.exercises.splice(idx, 1);
+    toast('Exercício desmarcado da rotina.');
+    if (card) {
+      card.classList.remove('is-selected');
+      const btn = card.querySelector('[data-action="picker-toggle"], [data-action="picker-add"]');
+      if (btn) {
+        btn.className = 'btn btn-primary btn-small';
+        btn.innerHTML = `${icon('plus')} Adicionar`;
+        hydrateIcons(btn);
+      }
+    }
+  } else {
+    state.draft.exercises.push({ ...exerciseObject(ex), sets: 3, reps: '8–12', rest: 90 });
+    toast('Exercício incluído com sucesso!');
+    if (card) {
+      card.classList.add('is-selected');
+      const btn = card.querySelector('[data-action="picker-toggle"], [data-action="picker-add"]');
+      if (btn) {
+        btn.className = 'btn btn-outline btn-small is-selected';
+        btn.innerHTML = `${icon('check')} Adicionado`;
+        hydrateIcons(btn);
+      }
+    }
+  }
+
   const builder = document.getElementById('builder-exercises');
   if (builder) {
     builder.innerHTML = renderBuilderExercises();
@@ -2583,8 +2617,11 @@ function addExercise(idValue) {
   if (count) count.textContent = state.draft.exercises.length;
   const sets = document.getElementById('summary-sets');
   if (sets) sets.textContent = draftSetCount(state.draft);
-  toast('Exercício incluído com sucesso.');
   wireBuilderInputsOnly();
+}
+
+function addExercise(idValue) {
+  togglePickerExercise(idValue);
 }
 
 /**
@@ -2592,6 +2629,8 @@ function addExercise(idValue) {
  */
 function openExerciseDetails(ex) {
   const src = gifUrl(ex);
+  const isAdded = state.draft?.exercises?.some(e => String(e.id) === String(ex.id));
+  const fromPicker = state.modalHistory === 'picker';
   modalRoot.innerHTML = `
     <div class="modal-backdrop" data-action="backdrop-close">
       <section class="modal modal-wide" role="dialog" aria-modal="true">
@@ -2600,7 +2639,7 @@ function openExerciseDetails(ex) {
             <h3>${esc(translateExercise(ex.name))}</h3>
             <p>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))} · ${esc(labelEquipment(ex.equipment?.[0] || 'Vários'))}</p>
           </div>
-          <button class="modal-close" data-action="close-modal" aria-label="Fechar">
+          <button class="modal-close" data-action="${fromPicker ? 'return-to-picker' : 'close-modal'}" aria-label="Fechar">
             ${icon('x')}
           </button>
         </div>
@@ -2642,9 +2681,11 @@ function openExerciseDetails(ex) {
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-outline" data-action="close-modal">Fechar</button>
-          <button class="btn btn-primary" data-action="add-exercise" data-id="${esc(ex.id)}">
-            ${icon('plus')} Adicionar ao treino
+          <button class="btn btn-outline" data-action="${fromPicker ? 'return-to-picker' : 'close-modal'}">
+            ${fromPicker ? 'Voltar aos exercícios' : 'Fechar'}
+          </button>
+          <button class="btn ${isAdded ? 'btn-outline is-selected' : 'btn-primary'}" data-action="detail-toggle" data-id="${esc(ex.id)}">
+            ${isAdded ? `${icon('check')} Na sua rotina (alternar)` : `${icon('plus')} Adicionar ao treino`}
           </button>
         </div>
       </section>
@@ -3155,9 +3196,33 @@ document.addEventListener('click', async event => {
       break;
     case 'open-exercise-picker':
       if (!state.exercisesReady) await loadExercises();
+      state.modalHistory = null;
       openPicker();
       break;
+    case 'picker-details': {
+      const ex = state.exercises.find(e => String(e.id) === String(idValue));
+      if (ex) {
+        state.modalHistory = 'picker';
+        openExerciseDetails(ex);
+      }
+      break;
+    }
+    case 'return-to-picker':
+      state.modalHistory = null;
+      openPicker();
+      break;
+    case 'detail-toggle':
+      togglePickerExercise(idValue);
+      if (state.modalHistory === 'picker') {
+        state.modalHistory = null;
+        openPicker();
+      } else {
+        const ex = state.exercises.find(e => String(e.id) === String(idValue));
+        if (ex) openExerciseDetails(ex);
+      }
+      break;
     case 'close-modal':
+      state.modalHistory = null;
       modalRoot.innerHTML = '';
       break;
     case 'backdrop-close':
@@ -3165,6 +3230,9 @@ document.addEventListener('click', async event => {
       break;
     case 'picker-add':
       addExercise(idValue);
+      break;
+    case 'picker-toggle':
+      togglePickerExercise(idValue, el);
       break;
     case 'add-exercise':
       if (modalRoot.childElementCount) modalRoot.innerHTML = '';
