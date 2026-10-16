@@ -2530,6 +2530,42 @@ a {
     height: 210px;
   }
 
+  /* VISUALIZAR TREINO — CARDS DE EXERCÍCIO RESPONSIVOS */
+  .view-exercise-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    padding: 1rem 0.75rem !important;
+  }
+  .view-exercise-card .view-gif-wrap {
+    width: 100% !important;
+    height: 180px !important;
+    border-radius: var(--radius-md);
+  }
+  .view-exercise-card .view-gif-wrap img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    background: hsl(var(--secondary));
+  }
+  .view-exercise-card .view-stats {
+    justify-content: space-around !important;
+    gap: 0.5rem !important;
+    padding: 0.65rem 0;
+    background: hsl(var(--secondary));
+    border-radius: var(--radius-md);
+  }
+  .view-exercise-card .view-stats > div {
+    flex: 1;
+    text-align: center;
+  }
+  .view-exercise-card .view-stat-value {
+    font-size: 1.35rem !important;
+  }
+  .view-exercise-card .view-stat-label {
+    font-size: 0.72rem !important;
+  }
+
   /* TOASTS REPOSICIONADOS ACIMA DA NAVBAR NO CELULAR */
   #toast-region {
     left: 1rem;

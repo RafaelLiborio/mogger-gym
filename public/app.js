@@ -1964,8 +1964,8 @@ function openViewWorkout(workoutId) {
             const name = translateExercise(ex.name);
             const target = ex.targetMuscles?.[0] ? labelMuscle(ex.targetMuscles[0]) : (ex.bodyParts?.[0] ? labelBody(ex.bodyParts[0]) : 'Geral');
             return `
-              <div class="view-exercise-card" style="display:flex;gap:1rem;align-items:flex-start;padding:1rem;border-bottom:1px solid hsl(var(--border));${i === 0 ? 'border-top:1px solid hsl(var(--border));' : ''}">
-                <div style="flex-shrink:0;width:120px;height:120px;border-radius:var(--radius-md);overflow:hidden;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center">
+              <div class="view-exercise-card" style="display:flex;gap:1rem;align-items:center;padding:1rem;border-bottom:1px solid hsl(var(--border))">
+                <div class="view-gif-wrap" style="flex-shrink:0;width:120px;height:120px;border-radius:var(--radius-md);overflow:hidden;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center">
                   ${src
                     ? `<img src="${esc(src)}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
                     : ''}
@@ -1975,20 +1975,20 @@ function openViewWorkout(workoutId) {
                   </div>
                 </div>
                 <div style="flex:1;min-width:0">
-                  <strong style="font-size:1rem;display:block;margin-bottom:4px">${esc(name)}</strong>
-                  <span class="meta-chip" style="margin-bottom:8px;display:inline-block">${esc(target)}</span>
-                  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:6px">
-                    <div style="text-align:center">
-                      <div style="font-size:1.15rem;font-weight:800;color:hsl(var(--primary))">${ex.sets || 3}</div>
-                      <div style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Séries</div>
+                  <strong style="font-size:1.05rem;display:block;margin-bottom:4px">${esc(name)}</strong>
+                  <span class="meta-chip" style="margin-bottom:6px;display:inline-block">${esc(target)}</span>
+                  <div class="view-stats" style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:8px">
+                    <div>
+                      <div class="view-stat-value" style="font-size:1.2rem;font-weight:800;color:hsl(var(--primary))">${ex.sets || 3}</div>
+                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Séries</div>
                     </div>
-                    <div style="text-align:center">
-                      <div style="font-size:1.15rem;font-weight:800;color:hsl(var(--foreground))">${esc(ex.reps || '8–12')}</div>
-                      <div style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Reps</div>
+                    <div>
+                      <div class="view-stat-value" style="font-size:1.2rem;font-weight:800;color:hsl(var(--foreground))">${esc(ex.reps || '8–12')}</div>
+                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Reps</div>
                     </div>
-                    <div style="text-align:center">
-                      <div style="font-size:1.15rem;font-weight:800;color:hsl(var(--foreground))">${ex.rest || 90}s</div>
-                      <div style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Descanso</div>
+                    <div>
+                      <div class="view-stat-value" style="font-size:1.2rem;font-weight:800;color:hsl(var(--foreground))">${ex.rest || 90}s</div>
+                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Descanso</div>
                     </div>
                   </div>
                 </div>
