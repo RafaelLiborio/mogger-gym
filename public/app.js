@@ -493,23 +493,23 @@ function renderLogin(error = '', email = '') {
         <div class="brand-mark">M</div>
         <div>
           <div class="brand-name">MOGGER<span>GYM</span></div>
-          <div class="brand-caption">TRAIN WITH PURPOSE</div>
+          <div class="brand-caption">TREINE COM PROPÓSITO</div>
         </div>
       </div>
       <div class="story-copy">
-        <div class="eyebrow">DESIGN SHADCN · PERFORMANCE FIT</div>
+        <div class="eyebrow">DESIGN MODERNO · PERFORMANCE TOTAL</div>
         <h1>Construa força.<br>Eleve o seu <em>padrão.</em></h1>
         <p>Um espaço refinado para transformar esforço em resultado. Organize seus treinos com demonstrações em GIF, acompanhe seu ritmo e evolua com consistência.</p>
         <div class="story-proof">
           <div><span class="proof-number">1.100<span style="color:hsl(var(--primary))">+</span></span><span class="proof-label">EXERCÍCIOS COM GIF</span></div>
           <div class="proof-divider"></div>
-          <div><span class="proof-number">125<span style="color:hsl(var(--primary))">%</span></span><span class="proof-label">LEITURA &amp; ESCALA AMPLIADA</span></div>
+          <div><span class="proof-number">125<span style="color:hsl(var(--primary))">%</span></span><span class="proof-label">ESCALA AMPLIADA</span></div>
           <div class="proof-divider"></div>
-          <div><span class="proof-number">CLOUD</span><span class="proof-label">SUPABASE &amp; GOOGLE</span></div>
+          <div><span class="proof-number">NUVEM</span><span class="proof-label">SUPABASE &amp; GOOGLE</span></div>
         </div>
       </div>
       <div class="story-footer">
-        <span>© MOGGER GYM · SHADCN FITNESS</span>
+        <span>© MOGGER GYM · PLATAFORMA FITNESS</span>
         <!--<button class="text-link" data-action="open-supabase-modal" style="font-size:0.75rem;color:hsl(var(--muted-foreground))">
           ${icon('settings')} Configurar Supabase
         </button> -->
@@ -522,7 +522,7 @@ function renderLogin(error = '', email = '') {
           <div class="brand-mark">M</div>
           <div>
             <div class="brand-name">MOGGER<span>GYM</span></div>
-            <div class="brand-caption">TRAIN WITH PURPOSE</div>
+            <div class="brand-caption">TREINE COM PROPÓSITO</div>
           </div>
         </div>
 
@@ -891,7 +891,7 @@ function renderApp() {
             <div class="brand-mark">M</div>
             <div>
               <div class="brand-name">MOGGER<span>GYM</span></div>
-              <div class="brand-caption">PERFORMANCE OS</div>
+              <div class="brand-caption">PLATAFORMA FITNESS</div>
             </div>
           </div>
         </div>
@@ -933,7 +933,7 @@ function renderApp() {
         <header class="topbar">
           <div class="breadcrumb">
             <div class="mobile-brand-icon">M</div>
-            <span class="breadcrumb-prefix">Workspace / </span>
+            <span class="breadcrumb-prefix">Painel / </span>
             <b class="breadcrumb-current">${esc(pageLabel(state.page))}</b>
           </div>
 
@@ -1400,7 +1400,7 @@ function renderLibrary() {
     <div id="exercise-results">${renderExerciseGrid()}</div>
 
     <div class="library-note">
-      Demonstrações visuais animadas integradas da biblioteca pública oficial <a href="${SOURCE_PAGE}" target="_blank" rel="noopener">Exercise Library</a> via CDN direto.
+      Demonstrações visuais animadas integradas da biblioteca pública oficial <a href="${SOURCE_PAGE}" target="_blank" rel="noopener">Biblioteca de Exercícios</a> via CDN direto.
     </div>
     <div class="footer-credit">
       Ajuste a carga e amplitude à sua condição articular. Não treine sentindo dor aguda.
@@ -2530,12 +2530,12 @@ function openSupabaseConfigModal(triggerGoogleAfter = false) {
 
         <form id="supabase-config-form">
           <div class="form-group">
-            <label class="form-label" for="cfg-sb-url">Supabase Project URL</label>
+            <label class="form-label" for="cfg-sb-url">URL do Projeto Supabase</label>
             <input class="field" id="cfg-sb-url" name="url" placeholder="https://seu-projeto.supabase.co" value="${esc(currentUrl)}" required />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="cfg-sb-key">Supabase Anon Key (Pública)</label>
+            <label class="form-label" for="cfg-sb-key">Chave Anon do Supabase (Pública)</label>
             <input class="field" id="cfg-sb-key" name="key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." value="${esc(currentKey)}" required />
           </div>
 
