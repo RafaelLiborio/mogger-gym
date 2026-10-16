@@ -887,13 +887,13 @@ function renderApp() {
 
         <div class="nav-caption">MENU PRINCIPAL</div>
         <nav class="side-nav" aria-label="Navegação principal">
-          ${navItem('dashboard', 'Visão geral', 'dashboard')}
-          ${navItem('workouts', 'Meus treinos', 'workouts', state.workouts.length || '')}
-          ${navItem('library', 'Exercícios', 'library')}
-          ${navItem('history', 'Histórico', 'history')}
+          ${navItem('dashboard', 'Visão geral', 'dashboard', '', 'Início')}
+          ${navItem('workouts', 'Meus treinos', 'workouts', state.workouts.length || '', 'Treinos')}
+          ${navItem('library', 'Biblioteca de exercícios', 'library', '', 'Exercícios')}
+          ${navItem('history', 'Histórico', 'history', '', 'Histórico')}
           ${state.user.role === 'admin' ? `
             <div class="nav-caption">GESTÃO</div>
-            ${navItem('users', 'Usuários', 'users', state.users.filter(u=>u.role==='member').length || '')}
+            ${navItem('users', 'Usuários', 'users', state.users.filter(u=>u.role==='member').length || '', 'Usuários')}
           ` : ''}
         </nav>
 
@@ -921,14 +921,13 @@ function renderApp() {
       <main class="main-area">
         <header class="topbar">
           <div class="breadcrumb">
-            <button class="mobile-menu" data-action="toggle-mobile-menu" aria-label="Abrir menu">
-              ${icon('menu')}
-            </button>
-            <span>Workspace / </span><b>&nbsp;${esc(pageLabel(state.page))}</b>
+            <div class="mobile-brand-icon">M</div>
+            <span class="breadcrumb-prefix">Workspace / </span>
+            <b class="breadcrumb-current">${esc(pageLabel(state.page))}</b>
           </div>
 
           <div class="topbar-actions">
-            <!-- Seletor de Escala 125% -->
+            <!-- Seletor de Escala (Desktop) -->
             <div class="scale-selector" title="Resolução e escala de leitura">
               <button class="scale-btn ${state.resolutionScale==='100'?'active':''}" data-action="set-scale" data-scale="100">100%</button>
               <button class="scale-btn ${state.resolutionScale==='125'?'active':''}" data-action="set-scale" data-scale="125">125%</button>
@@ -944,13 +943,9 @@ function renderApp() {
               ${icon('search')}
             </button>
 
-            <button class="icon-top" data-action="open-supabase-modal" title="Configurar Supabase" aria-label="Configurar Supabase">
-              ${icon('settings')}
-            </button>
-
-            <div class="avatar" title="${esc(state.user.name)}">
+            <button class="avatar avatar-button" data-action="open-user-profile" title="Minha conta (${esc(state.user.name)})" aria-label="Abrir menu de perfil">
               ${userAvatar}
-            </div>
+            </button>
           </div>
         </header>
 
@@ -962,12 +957,14 @@ function renderApp() {
   hydrateIcons();
 }
 
-function navItem(page, label, iconKey, pill = '') {
+function navItem(page, label, iconKey, pill = '', shortLabel = '') {
   const active = state.page === page;
+  const displayShort = shortLabel || label;
   return `
     <button class="nav-item ${active ? 'active' : ''}" data-page="${page}" title="${label}">
       <span class="nav-icon">${icon(iconKey)}</span>
-      <span class="nav-label">${label}</span>
+      <span class="nav-label desktop-only">${label}</span>
+      <span class="nav-label mobile-only">${displayShort}</span>
       ${pill ? `<span class="nav-pill">${pill}</span>` : ''}
     </button>`;
 }
@@ -1590,30 +1587,34 @@ function renderBuilderExercises() {
 
   return d.exercises.map((ex, i) => `
     <div class="builder-exercise" data-exercise-row="${i}">
-      <div class="builder-thumb">
-        ${gifUrl(ex) ? `
-          <img src="${esc(gifUrl(ex))}" alt="" loading="lazy" onerror="this.style.display='none'">
-        ` : `<span style="color:hsl(var(--muted-foreground))">${icon('dumbbell')}</span>`}
+      <div class="builder-exercise-main">
+        <div class="builder-thumb">
+          ${gifUrl(ex) ? `
+            <img src="${esc(gifUrl(ex))}" alt="" loading="lazy" onerror="this.style.display='none'">
+          ` : `<span style="color:hsl(var(--muted-foreground))">${icon('dumbbell')}</span>`}
+        </div>
+        <div class="builder-ex-info">
+          <strong>${esc(translateExercise(ex.name))}</strong>
+          <span>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))}</span>
+        </div>
+        <button class="remove-exercise" data-action="remove-draft-exercise" data-index="${i}" title="Remover exercício" aria-label="Remover">
+          ${icon('trash')}
+        </button>
       </div>
-      <div class="builder-ex-info">
-        <strong>${esc(translateExercise(ex.name))}</strong>
-        <span>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))}</span>
+      <div class="builder-exercise-params">
+        <div class="param-box">
+          <label class="compact-label">Séries</label>
+          <input class="compact-field" type="number" min="1" max="20" inputmode="numeric" value="${Number(ex.sets) || 3}" data-draft-index="${i}" data-field="sets" />
+        </div>
+        <div class="param-box">
+          <label class="compact-label">Reps</label>
+          <input class="compact-field" value="${esc(ex.reps || '8–12')}" maxlength="20" data-draft-index="${i}" data-field="reps" />
+        </div>
+        <div class="param-box rest-control">
+          <label class="compact-label">Descanso(s)</label>
+          <input class="compact-field" type="number" min="0" max="600" inputmode="numeric" value="${Number(ex.rest) || 90}" data-draft-index="${i}" data-field="rest" />
+        </div>
       </div>
-      <div>
-        <label class="compact-label">Séries</label>
-        <input class="compact-field" type="number" min="1" max="20" value="${Number(ex.sets) || 3}" data-draft-index="${i}" data-field="sets" />
-      </div>
-      <div>
-        <label class="compact-label">Reps</label>
-        <input class="compact-field" value="${esc(ex.reps || '8–12')}" maxlength="20" data-draft-index="${i}" data-field="reps" />
-      </div>
-      <div class="rest-control">
-        <label class="compact-label">Descanso(s)</label>
-        <input class="compact-field" type="number" min="0" max="600" value="${Number(ex.rest) || 90}" data-draft-index="${i}" data-field="rest" />
-      </div>
-      <button class="remove-exercise" data-action="remove-draft-exercise" data-index="${i}" title="Remover exercício">
-        ${icon('trash')}
-      </button>
     </div>
   `).join('');
 }
@@ -2159,8 +2160,8 @@ function openExerciseDetails(ex) {
           </button>
         </div>
 
-        <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.2fr);gap:1.4rem">
-          <div class="exercise-media" style="height:240px;border-radius:var(--radius-md);border:1px solid hsl(var(--border))">
+        <div class="exercise-detail-grid">
+          <div class="exercise-media exercise-modal-media">
             ${src ? `
               <img src="${esc(src)}" alt="Demonstração em GIF de ${esc(translateExercise(ex.name))}" onerror="this.style.display='none'">
             ` : `
@@ -2382,6 +2383,59 @@ function openSupabaseConfigModal(triggerGoogleAfter = false) {
   });
 }
 
+function openUserProfileModal() {
+  if (!state.user) return;
+  const userAvatar = state.user.avatar
+    ? `<img src="${esc(state.user.avatar)}" alt="${esc(state.user.name)}" />`
+    : esc(initials(state.user.name));
+
+  modalRoot.innerHTML = `
+    <div class="modal-backdrop" data-action="backdrop-close">
+      <section class="modal modal-sheet" role="dialog" aria-modal="true">
+        <div class="modal-head">
+          <div style="display:flex;align-items:center;gap:0.85rem">
+            <div class="avatar" style="width:3rem;height:3rem;font-size:1.15rem">${userAvatar}</div>
+            <div>
+              <h3 style="font-size:1.15rem">${esc(state.user.name)}</h3>
+              <p style="font-size:0.82rem">${esc(state.user.email)}</p>
+            </div>
+          </div>
+          <button class="modal-close" data-action="close-modal" aria-label="Fechar">${icon('x')}</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:0.75rem;margin:1.2rem 0">
+          <div class="panel" style="padding:0.9rem;background:hsl(var(--popover))">
+            <div style="font-size:0.72rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;margin-bottom:6px">Status da Conta</div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <span class="status-chip">${state.authProvider === 'supabase' ? 'Google / Supabase' : (state.user.role === 'admin' ? 'Administrador' : 'Membro Mogger')}</span>
+            </div>
+          </div>
+
+          <div class="panel" style="padding:0.9rem;background:hsl(var(--popover))">
+            <div style="font-size:0.72rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;margin-bottom:8px">Escala de Resolução</div>
+            <div class="scale-selector" style="display:flex;width:100%">
+              <button class="scale-btn ${state.resolutionScale==='100'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="100">100%</button>
+              <button class="scale-btn ${state.resolutionScale==='125'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="125">125%</button>
+              <button class="scale-btn ${state.resolutionScale==='150'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="150">150%</button>
+            </div>
+          </div>
+
+          <button class="btn btn-outline" data-action="open-supabase-modal" style="width:100%;justify-content:flex-start;padding:0.85rem">
+            ${icon('settings')} Configurar Banco Supabase
+          </button>
+        </div>
+
+        <div class="modal-actions" style="margin-top:1.2rem">
+          <button class="btn btn-danger" data-action="logout" style="width:100%;padding:0.85rem;justify-content:center">
+            ${icon('logout')} Sair da conta
+          </button>
+        </div>
+      </section>
+    </div>`;
+
+  hydrateIcons(modalRoot);
+}
+
 function openUserModal(userId = null) {
   const user = state.users.find(u => u.id === userId);
   const editing = Boolean(user);
@@ -2561,6 +2615,9 @@ document.addEventListener('click', async event => {
       break;
     case 'open-supabase-modal':
       openSupabaseConfigModal();
+      break;
+    case 'open-user-profile':
+      openUserProfileModal();
       break;
     case 'set-auth-tab': {
       const tab = el.dataset.tab;
