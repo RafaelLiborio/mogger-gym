@@ -2070,6 +2070,10 @@ a {
   text-decoration: underline;
 }
 
+.mobile-brand-icon {
+  display: none;
+}
+
 /* ==============================================================================
    RESPONSIVIDADE COMPLETA E REFINADA — MOBILE FIRST FITNESS OS
    Projetado especificamente para uso em smartphones por alunos e atletas na academia
@@ -2542,6 +2546,50 @@ a {
     min-height: 44px;
     font-size: 0.92rem;
   }
+
+  /* ADMIN TABLE → CARD LAYOUT NO CELULAR */
+  .data-table { min-width: 0; }
+  .data-table thead { display: none; }
+  .data-table tbody { display: flex; flex-direction: column; gap: 0.75rem; }
+  .data-table tr {
+    display: flex;
+    flex-direction: column;
+    background: hsl(var(--popover));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    gap: 0.65rem;
+  }
+  .data-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    border: none;
+    white-space: normal;
+    font-size: 0.88rem;
+  }
+  .data-table td:before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: hsl(var(--muted-foreground));
+    min-width: 80px;
+  }
+  .data-table .table-user {
+    flex-direction: row;
+    gap: 0.6rem;
+  }
+  .data-table .table-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .data-table .table-actions .btn {
+    min-height: 40px;
+    flex: 1;
+  }
 }
 
 /* Telas Compactas / Smartphones Menores (< 480px / 360px) */
@@ -2617,4 +2665,132 @@ a {
     padding: 0.4rem 0.65rem;
     font-size: 0.78rem;
   }
+}
+
+/* ==============================================================================
+   LOADING SPINNER & ACTIVE WORKOUT MODE
+   ============================================================================== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(9, 10, 15, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid hsl(var(--border));
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-text {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Botão duplicar treino */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: hsl(var(--muted-foreground));
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+}
+.btn-ghost:hover {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+/* Timer de descanso */
+.rest-timer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(9, 10, 15, 0.92);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.2s ease-out;
+}
+.rest-timer-display {
+  font: 900 5rem/1 'Manrope', sans-serif;
+  color: hsl(var(--primary));
+  text-shadow: 0 0 40px rgba(196, 243, 88, 0.4);
+  letter-spacing: -0.03em;
+}
+.rest-timer-label {
+  color: hsl(var(--muted-foreground));
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.rest-timer-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Workout em progresso - séries marcadas */
+.set-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.set-check:hover {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+.set-check.done {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.set-checks {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Progress bar */
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: hsl(var(--secondary));
+  border-radius: 9999px;
+  overflow: hidden;
+  margin: 0.75rem 0;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: hsl(var(--primary));
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 8px rgba(196, 243, 88, 0.4);
 }

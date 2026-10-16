@@ -393,6 +393,17 @@ function toast(message, type = 'success') {
   }, 3500);
 }
 
+function showLoading(message = 'Carregando…') {
+  const el = document.createElement('div');
+  el.id = 'loading-overlay';
+  el.className = 'loading-overlay';
+  el.innerHTML = `<div class="spinner"></div><div class="loading-text">${esc(message)}</div>`;
+  document.body.appendChild(el);
+}
+function hideLoading() {
+  document.getElementById('loading-overlay')?.remove();
+}
+
 function icon(name, label = '') {
   const iconName = ICONS[name] || name || 'circle';
   return `<i data-lucide="${iconName}"${label ? ` aria-label="${esc(label)}"` : ' aria-hidden="true"'}></i>`;
@@ -499,9 +510,9 @@ function renderLogin(error = '', email = '') {
       </div>
       <div class="story-footer">
         <span>© MOGGER GYM · SHADCN FITNESS</span>
-        <button class="text-link" data-action="open-supabase-modal" style="font-size:0.75rem;color:hsl(var(--muted-foreground))">
+        <!--<button class="text-link" data-action="open-supabase-modal" style="font-size:0.75rem;color:hsl(var(--muted-foreground))">
           ${icon('settings')} Configurar Supabase
-        </button>
+        </button> -->
       </div>
     </section>
 
@@ -1256,16 +1267,19 @@ function renderWorkouts() {
             </div>
 
             <div style="display:flex;gap:0.6rem;margin-top:1.2rem;flex-wrap:wrap">
-              <button class="btn btn-outline" style="flex:1" data-action="edit-workout" data-id="${esc(w.id)}">
-                ${icon('edit')} Editar
-              </button>
-              <button class="btn btn-primary" style="flex:1" data-action="complete-workout" data-id="${esc(w.id)}">
-                ${icon('check')} Concluir
-              </button>
-              <button class="btn btn-danger btn-small" data-action="delete-workout" data-id="${esc(w.id)}" title="Excluir">
-                ${icon('trash')}
-              </button>
-            </div>
+  <button class="btn btn-outline" style="flex:1" data-action="edit-workout" data-id="${esc(w.id)}">
+    ${icon('edit')} Editar
+  </button>
+  <button class="btn btn-primary" style="flex:1" data-action="complete-workout" data-id="${esc(w.id)}">
+    ${icon('check')} Concluir
+  </button>
+  <button class="btn btn-ghost btn-small" data-action="duplicate-workout" data-id="${esc(w.id)}" title="Duplicar treino">
+    ${icon('layers')} Duplicar
+  </button>
+  <button class="btn btn-danger btn-small" data-action="delete-workout" data-id="${esc(w.id)}" title="Excluir">
+    ${icon('trash')}
+  </button>
+</div>
           </section>
         `).join('')}
       </div>
@@ -1772,7 +1786,7 @@ function renderAdmin() {
           <tbody>
             ${visible.map(u => `
               <tr>
-                <td>
+                <td data-label="Usuário">
                   <div class="table-user">
                     <div class="avatar">${esc(initials(u.name))}</div>
                     <div>
@@ -1781,11 +1795,11 @@ function renderAdmin() {
                     </div>
                   </div>
                 </td>
-                <td><span class="role-chip">${u.role === 'admin' ? 'Administrador' : 'Membro'}</span></td>
-                <td><span class="status-chip ${u.active ? '' : 'inactive'}">${u.active ? 'Ativo' : 'Desativado'}</span></td>
-                <td>${u.workoutCount || 0}</td>
-                <td>${u.completedCount || 0}</td>
-                <td>
+                <td data-label="Perfil"><span class="role-chip">${u.role === 'admin' ? 'Administrador' : 'Membro'}</span></td>
+                <td data-label="Status"><span class="status-chip ${u.active ? '' : 'inactive'}">${u.active ? 'Ativo' : 'Desativado'}</span></td>
+                <td data-label="Treinos">${u.workoutCount || 0}</td>
+                <td data-label="Sessões">${u.completedCount || 0}</td>
+                <td data-label="Ações">
                   <div class="table-actions">
                     ${u.role === 'member' ? `
                       <button class="btn btn-outline btn-small" data-action="reset-user-password" data-id="${esc(u.id)}">Senha</button>
@@ -1920,6 +1934,52 @@ function openEditWorkout(idValue) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+async function duplicateWorkout(workoutId) {
+  const workout = state.workouts.find(w => w.id === workoutId);
+  if (!workout) return;
+  showLoading('Duplicando treino…');
+  const payload = {
+    title: workout.title + ' (Cópia)',
+    focus: workout.focus,
+    days: workout.days,
+    notes: workout.notes,
+    exercises: workout.exercises
+  };
+  const sb = getSupabase();
+  if (state.authProvider === 'supabase' && sb && state.user) {
+    try {
+      const { error } = await sb.from('workouts').insert({
+        user_id: state.user.id,
+        title: payload.title,
+        focus: payload.focus,
+        days: payload.days,
+        notes: payload.notes,
+        exercises: payload.exercises
+      });
+      if (error) throw error;
+      await refreshData();
+      hideLoading();
+      renderApp();
+      toast('Treino duplicado com sucesso!');
+    } catch (err) {
+      hideLoading();
+      toast('Erro ao duplicar: ' + err.message, 'error');
+    }
+    return;
+  }
+  try {
+    await api('/api/workouts', { method: 'POST', body: JSON.stringify(payload) });
+    await refreshData();
+    hideLoading();
+    renderApp();
+    toast('Treino duplicado com sucesso!');
+  } catch (err) {
+    hideLoading();
+    toast('Erro ao duplicar: ' + err.message, 'error');
+  }
+}
+
+
 async function saveWorkout() {
   if (!state.draft) return;
   const title = document.getElementById('draft-title')?.value?.trim() || state.draft.title?.trim();
@@ -1933,6 +1993,7 @@ async function saveWorkout() {
     return;
   }
 
+  showLoading('Salvando treino…');
   const payload = {
     title,
     focus: document.getElementById('draft-focus')?.value || state.draft.focus,
@@ -1958,6 +2019,7 @@ async function saveWorkout() {
           .eq('id', state.editingWorkoutId)
           .eq('user_id', state.user.id);
         if (error) throw error;
+        hideLoading();
         toast('Treino atualizado no Supabase com sucesso.');
       } else {
         const { error } = await sb
@@ -1971,6 +2033,7 @@ async function saveWorkout() {
             exercises: payload.exercises
           });
         if (error) throw error;
+        hideLoading();
         toast('Treino gravado no Supabase com sucesso.');
       }
       state.draft = null;
@@ -1980,6 +2043,7 @@ async function saveWorkout() {
       renderApp();
       return;
     } catch (err) {
+      hideLoading();
       toast('Erro no Supabase: ' + err.message, 'error');
       return;
     }
@@ -1992,6 +2056,7 @@ async function saveWorkout() {
     } else {
       await api('/api/workouts', { method:'POST', body:JSON.stringify(payload) });
     }
+    hideLoading();
     toast(state.editingWorkoutId ? 'Treino atualizado com sucesso.' : 'Treino salvo com sucesso.');
     state.draft = null;
     state.editingWorkoutId = null;
@@ -1999,6 +2064,7 @@ async function saveWorkout() {
     state.page = 'workouts';
     renderApp();
   } catch (err) {
+    hideLoading();
     toast(err.message, 'error');
   }
 }
@@ -2309,6 +2375,49 @@ function openCompleteModal(workoutId) {
     } catch (err) {
       toast(err.message, 'error');
       btn.disabled = false;
+    }
+  });
+}
+
+/**
+ * TIMER DE DESCANSO ENTRE SÉRIES
+ */
+function openRestTimer(seconds = 90) {
+  let remaining = seconds;
+  const overlay = document.createElement('div');
+  overlay.className = 'rest-timer-overlay';
+  overlay.id = 'rest-timer';
+  function updateDisplay() {
+    const min = Math.floor(remaining / 60);
+    const sec = remaining % 60;
+    overlay.innerHTML = `
+      <div class="rest-timer-label">${icon('timer')} Tempo de descanso</div>
+      <div class="rest-timer-display">${min}:${String(sec).padStart(2, '0')}</div>
+      <div class="rest-timer-actions">
+        <button class="btn btn-outline" data-action="cancel-timer">Pular</button>
+        <button class="btn btn-primary" data-action="cancel-timer">${icon('check')} Pronto!</button>
+      </div>
+    `;
+    hydrateIcons(overlay);
+  }
+  updateDisplay();
+  document.body.appendChild(overlay);
+  const interval = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(interval);
+      overlay.remove();
+      toast('Descanso finalizado! Vamos para a próxima série. 💪');
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    } else {
+      updateDisplay();
+    }
+  }, 1000);
+  overlay.addEventListener('click', (e) => {
+    const action = e.target.closest('[data-action]');
+    if (action?.dataset.action === 'cancel-timer') {
+      clearInterval(interval);
+      overlay.remove();
     }
   });
 }
@@ -2750,6 +2859,16 @@ document.addEventListener('click', async event => {
       } catch (err) {
         toast(err.message, 'error');
       }
+      break;
+    case 'duplicate-workout':
+      await duplicateWorkout(idValue);
+      break;
+    case 'start-rest-timer': {
+      const restTime = Number(el.dataset.rest) || 90;
+      openRestTimer(restTime);
+      break;
+    }
+    case 'cancel-timer':
       break;
     case 'exercise-details': {
       const ex = state.exercises.find(e => String(e.id) === String(idValue));
