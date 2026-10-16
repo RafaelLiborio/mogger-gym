@@ -2,6 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
+const os = require('node:os');
 const crypto = require('node:crypto');
 const { promisify } = require('node:util');
 const scrypt = promisify(crypto.scrypt);
@@ -24,29 +25,44 @@ try {
   }
 } catch (e) { /* continua com process.env padrão */ }
 
+const IS_VERCEL = Boolean(process.env.VERCEL);
 const ROOT = __dirname;
 const PUBLIC = path.join(ROOT, 'public');
-const DATA_DIR = path.join(ROOT, 'data');
+const DATA_DIR = IS_VERCEL ? path.join(os.tmpdir(), 'mogger-data') : path.join(ROOT, 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
 const SESSION_TTL = 1000 * 60 * 60 * 24 * 7;
 const sessions = new Map();
 const loginAttempts = new Map();
+let memoryStore = { users: [], workouts: [], logs: [] };
 
 async function ensureStore() {
-  await fsp.mkdir(DATA_DIR, { recursive: true });
-  try { await fsp.access(STORE_FILE); }
-  catch { await fsp.writeFile(STORE_FILE, JSON.stringify({ users: [], workouts: [], logs: [] }, null, 2)); }
+  try {
+    await fsp.mkdir(DATA_DIR, { recursive: true });
+    try { await fsp.access(STORE_FILE); }
+    catch { await fsp.writeFile(STORE_FILE, JSON.stringify({ users: [], workouts: [], logs: [] }, null, 2)); }
+  } catch (err) {
+    console.warn('Armazenamento em disco indisponível, usando fallback em memória:', err.message);
+  }
 }
 async function getStore() {
   await ensureStore();
-  return JSON.parse(await fsp.readFile(STORE_FILE, 'utf8'));
+  try {
+    return JSON.parse(await fsp.readFile(STORE_FILE, 'utf8'));
+  } catch {
+    return memoryStore;
+  }
 }
 async function saveStore(store) {
-  const temp = STORE_FILE + '.tmp';
-  await fsp.writeFile(temp, JSON.stringify(store, null, 2));
-  await fsp.rename(temp, STORE_FILE);
+  memoryStore = store;
+  try {
+    const temp = STORE_FILE + '.tmp';
+    await fsp.writeFile(temp, JSON.stringify(store, null, 2));
+    await fsp.rename(temp, STORE_FILE);
+  } catch (err) {
+    console.warn('Falha ao persistir em disco, dados mantidos em memória:', err.message);
+  }
 }
 function id() { return crypto.randomUUID(); }
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
@@ -291,9 +307,13 @@ const server = http.createServer(async (req, res) => {
   return serveStatic(req, res, url);
 });
 
-ensureStore().then(() => server.listen(PORT, HOST, () => {
-  console.log('\n  MOGGER GYM');
-  console.log(`  Aplicativo: http://localhost:${PORT}`);
-  console.log('  Para criar o administrador inicial: npm run setup-admin');
-  console.log('  Ctrl+C para encerrar.\n');
-})).catch(err => { console.error('Falha ao iniciar:', err); process.exit(1); });
+module.exports = server;
+
+if (require.main === module && !IS_VERCEL) {
+  ensureStore().then(() => server.listen(PORT, HOST, () => {
+    console.log('\n  MOGGER GYM');
+    console.log(`  Aplicativo: http://localhost:${PORT}`);
+    console.log('  Para criar o administrador inicial: npm run setup-admin');
+    console.log('  Ctrl+C para encerrar.\n');
+  })).catch(err => { console.error('Falha ao iniciar:', err); process.exit(1); });
+}
