@@ -148,65 +148,185 @@ function esc(value) {
 function initials(name) { return String(name || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0] || '').join('').toUpperCase(); }
 function firstName(name) { return String(name || '').trim().split(/\s+/)[0] || 'atleta'; }
 function pretty(value) { return String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+const EXERCISE_NOUN_DICTIONARY = [
+  ['bench press', 'Supino'],
+  ['chest fly', 'Crucifixo'],
+  ['flyes', 'Crucifixo'],
+  ['fly', 'Crucifixo'],
+  ['deadlift', 'Levantamento terra'],
+  ['squat', 'Agachamento'],
+  ['leg press', 'Leg press'],
+  ['leg curl', 'Flexão de pernas'],
+  ['leg extension', 'Extensão de pernas'],
+  ['calf raise', 'Elevação de panturrilha'],
+  ['calves raise', 'Elevação de panturrilha'],
+  ['lat pulldown', 'Puxada alta'],
+  ['pulldown', 'Puxada alta'],
+  ['pull-up', 'Barra fixa'],
+  ['pull up', 'Barra fixa'],
+  ['chin-up', 'Barra fixa supinada'],
+  ['chin up', 'Barra fixa supinada'],
+  ['push-up', 'Flexão de braço'],
+  ['push up', 'Flexão de braço'],
+  ['shrug', 'Encolhimento'],
+  ['bicep curl', 'Rosca bíceps'],
+  ['biceps curl', 'Rosca bíceps'],
+  ['preacher curl', 'Rosca Scott'],
+  ['hammer curl', 'Rosca martelo'],
+  ['wrist curl', 'Rosca de punho'],
+  ['reverse curl', 'Rosca inversa'],
+  ['curl', 'Rosca'],
+  ['tricep extension', 'Extensão de tríceps'],
+  ['triceps extension', 'Extensão de tríceps'],
+  ['tricep pushdown', 'Tríceps na polia'],
+  ['triceps pushdown', 'Tríceps na polia'],
+  ['tricep dip', 'Mergulho de tríceps'],
+  ['triceps dip', 'Mergulho de tríceps'],
+  ['dip', 'Mergulho'],
+  ['skull crusher', 'Tríceps testa'],
+  ['skullcrusher', 'Tríceps testa'],
+  ['french press', 'Tríceps francês'],
+  ['shoulder press', 'Desenvolvimento de ombros'],
+  ['overhead press', 'Desenvolvimento militar'],
+  ['military press', 'Desenvolvimento militar'],
+  ['arnold press', 'Desenvolvimento Arnold'],
+  ['press', 'Desenvolvimento'],
+  ['lateral raise', 'Elevação lateral'],
+  ['front raise', 'Elevação frontal'],
+  ['rear delt raise', 'Elevação posterior'],
+  ['rear delt fly', 'Crucifixo invertido'],
+  ['rear delt', 'Posterior de ombro'],
+  ['raise', 'Elevação'],
+  ['bent over row', 'Remada curvada'],
+  ['t-bar row', 'Remada cavalinho'],
+  ['cable row', 'Remada na polia'],
+  ['row', 'Remada'],
+  ['hip thrust', 'Elevação pélvica'],
+  ['glute bridge', 'Ponte de glúteos'],
+  ['bridge', 'Ponte'],
+  ['lunge', 'Afundo'],
+  ['split squat', 'Agachamento búlgaro'],
+  ['bulgarian split squat', 'Agachamento búlgaro'],
+  ['hack squat', 'Agachamento hack'],
+  ['sissy squat', 'Agachamento sissy'],
+  ['goblet squat', 'Agachamento goblet'],
+  ['jump squat', 'Agachamento com salto'],
+  ['step-up', 'Subida no banco'],
+  ['step up', 'Subida no banco'],
+  ['step', 'Passo'],
+  ['crunch', 'Abdominal crunch'],
+  ['sit-up', 'Abdominal'],
+  ['sit up', 'Abdominal'],
+  ['v-up', 'Abdominal em V'],
+  ['plank', 'Prancha'],
+  ['side plank', 'Prancha lateral'],
+  ['russian twist', 'Abdominal russo'],
+  ['mountain climber', 'Escalador'],
+  ['climber', 'Escalador'],
+  ['jumping jack', 'Polichinelo'],
+  ['burpee', 'Burpee'],
+  ['toe touch', 'Toque no pé'],
+  ['heel touch', 'Toque no calcanhar'],
+  ['leg raise', 'Elevação de pernas'],
+  ['knee raise', 'Elevação de joelhos'],
+  ['kickback', 'Coice de glúteo'],
+  ['side bend', 'Inclinação lateral de tronco'],
+  ['bend', 'Flexão de tronco'],
+  ['twist', 'Giro de tronco'],
+  ['hyperextension', 'Hiperextensão lombar'],
+  ['back extension', 'Extensão lombar'],
+  ['good morning', 'Bom dia'],
+  ['pullover', 'Pullover'],
+  ['crossover', 'Crossover'],
+  ['cross-over', 'Crossover'],
+  ['pushdown', 'Pushdown'],
+  ['face pull', 'Face pull'],
+  ['stretch', 'Alongamento'],
+  ['air bike', 'Abdominal bicicleta'],
+  ['bicycle', 'Bicicleta'],
+  ['circles', 'Circunodução em círculos'],
+  ['slingers', 'Balanço suspenso'],
+  ['jump', 'Salto'],
+  ['jumps', 'Saltos'],
+  ['rollerout', 'Rolamento com roda abdominal'],
+  ['roller', 'Rolamento abdominal'],
+  ['snatch', 'Arranco'],
+  ['clean', 'Arremesso'],
+  ['jerk', 'Arremesso'],
+  ['thruster', 'Thruster'],
+  ['battling ropes', 'Corda naval'],
+  ['ropes', 'Corda naval'],
+  ['bear crawl', 'Passada de urso'],
+  ['crawl', 'Rastejamento'],
+  ['walk', 'Caminhada'],
+  ['run', 'Corrida'],
+  ['sprint', 'Tiro de corrida'],
+  ['hop', 'Salto'],
+  ['hops', 'Saltos'],
+  ['kick', 'Chute'],
+  ['kicks', 'Chutes'],
+  ['lift', 'Elevação'],
+  ['lifting', 'Elevação'],
+  ['pull through', 'Puxada por entre as pernas'],
+  ['pull', 'Puxada'],
+  ['push', 'Empurrada'],
+  ['adduction', 'Adução'],
+  ['abduction', 'Abdução'],
+  ['rotation', 'Rotação'],
+  ['extension', 'Extensão'],
+  ['lever', 'Alavanca'],
+  ['hold', 'Isometria'],
+  ['drive', 'Impulsão']
+];
+
 function translateExercise(name) {
-  let exact = String(name || '').toLowerCase().trim();
-  if (EXERCISE_TRANSLATIONS[exact]) return EXERCISE_TRANSLATIONS[exact];
-  
-  // Limpeza de sufixos de gênero comuns na biblioteca original
-  exact = exact.replace(/\s*\((male|female)\)/gi, '').trim();
-  if (EXERCISE_TRANSLATIONS[exact]) return EXERCISE_TRANSLATIONS[exact];
+  let s = String(name || '').toLowerCase().replace(/\s*\((male|female)\)/gi, '').trim();
+  if (EXERCISE_TRANSLATIONS[s]) return EXERCISE_TRANSLATIONS[s];
 
-  for (const [key, value] of Object.entries(EXERCISE_TRANSLATIONS)) {
-    if (exact.startsWith(key + ' ')) return value + ' ' + pretty(exact.slice(key.length + 1));
+  let foundNoun = null;
+  let nounPt = '';
+  for (const [en, pt] of EXERCISE_NOUN_DICTIONARY) {
+    if (s.includes(en)) {
+      foundNoun = en;
+      nounPt = pt;
+      break;
+    }
   }
 
-  // Tradução inteligente por termos comuns no nome
-  let res = exact;
-  const nameDictionary = [
-    [/\barms apart circular toe touch\b/gi, 'Toque no pé circular com braços abertos'],
-    [/\bcircular toe touch\b/gi, 'Toque no pé em círculo'],
-    [/\btoe touch\b/gi, 'Toque no pé'],
-    [/\barms apart\b/gi, 'com braços abertos'],
-    [/\bjumping jack\b/gi, 'Polichinelo'],
-    [/\bmountain climber\b/gi, 'Escalador'],
-    [/\bbench press\b/gi, 'Supino'],
-    [/\bincline\b/gi, 'inclinado'],
-    [/\bdecline\b/gi, 'declinado'],
-    [/\bsquat\b/gi, 'Agachamento'],
-    [/\bdeadlift\b/gi, 'Levantamento terra'],
-    [/\blunge\b/gi, 'Afundo'],
-    [/\bcurl\b/gi, 'Rosca'],
-    [/\bextension\b/gi, 'Extensão'],
-    [/\braise\b/gi, 'Elevação'],
-    [/\bpress\b/gi, 'Desenvolvimento'],
-    [/\brow\b/gi, 'Remada'],
-    [/\bpull\b/gi, 'Puxada'],
-    [/\bpush\b/gi, 'Empurrada'],
-    [/\bdip\b/gi, 'Mergulho'],
-    [/\bcrunch\b/gi, 'Abdominal crunch'],
-    [/\bplank\b/gi, 'Prancha'],
-    [/\bshrug\b/gi, 'Encolhimento'],
-    [/\bfly\b/gi, 'Crucifixo'],
-    [/\bbarbell\b/gi, 'com barra'],
-    [/\bdumbbell\b/gi, 'com halteres'],
-    [/\bcable\b/gi, 'na polia'],
-    [/\bmachine\b/gi, 'na máquina'],
-    [/\bbodyweight\b/gi, 'livre'],
-    [/\bseated\b/gi, 'sentado'],
-    [/\bstanding\b/gi, 'em pé'],
-    [/\blying\b/gi, 'deitado'],
-    [/\blateral\b/gi, 'lateral'],
-    [/\bfront\b/gi, 'frontal'],
-    [/\breverse\b/gi, 'reverso'],
-    [/\boverhead\b/gi, 'acima da cabeça']
-  ];
+  const mods = [];
+  if (s.includes('incline')) mods.push('inclinado');
+  if (s.includes('decline')) mods.push('declinado');
+  if (s.includes('seated')) mods.push('sentado');
+  if (s.includes('standing')) mods.push('em pé');
+  if (s.includes('lying')) mods.push('deitado');
+  if (s.includes('cable')) mods.push('na polia');
+  if (s.includes('barbell')) mods.push('com barra');
+  if (s.includes('dumbbell')) mods.push('com halteres');
+  if (s.includes('machine')) mods.push('na máquina');
+  if (s.includes('smith')) mods.push('no Smith');
+  if (s.includes('band')) mods.push('com elástico');
+  if (s.includes('bodyweight') || s.includes('body weight')) mods.push('livre');
+  if (s.includes('single arm') || s.includes('one arm')) mods.push('unilateral');
+  if (s.includes('single leg') || s.includes('one leg')) mods.push('unilateral');
+  if (s.includes('reverse')) mods.push('inverso');
+  if (s.includes('close grip')) mods.push('pegada fechada');
+  if (s.includes('wide grip')) mods.push('pegada aberta');
+  if (s.includes('assisted')) mods.push('assistido');
+  if (s.includes('circular')) mods.push('circular');
+  if (s.includes('arms apart')) mods.push('com braços abertos');
+  if (s.includes('overhead')) mods.push('acima da cabeça');
 
-  for (const [pattern, rep] of nameDictionary) {
-    res = res.replace(pattern, rep);
+  if (foundNoun) {
+    const filteredMods = mods.filter(m => !nounPt.toLowerCase().includes(m));
+    if (filteredMods.length > 0) {
+      return nounPt + ' ' + filteredMods.join(' ');
+    }
+    return nounPt;
   }
 
-  return pretty(res);
+  return pretty(name);
 }
+
 function labelBody(value) { const v = String(value || '').toLowerCase(); return BODY_LABELS[v] || pretty(value); }
 function labelMuscle(value) { const v = String(value || '').toLowerCase(); return MUSCLE_LABELS[v] || pretty(value); }
 function labelEquipment(value) { const v = String(value || '').toLowerCase(); return EQUIPMENT_LABELS[v] || pretty(value); }
@@ -214,154 +334,230 @@ function labelEquipment(value) { const v = String(value || '').toLowerCase(); re
 /**
  * TRADUÇÃO DAS INSTRUÇÕES E DESCRIÇÕES DOS GIFS PARA PORTUGUÊS
  */
+const EXACT_INSTRUCTION_DICTIONARY = {
+  'Repeat for the desired number of repetitions.': 'Repita pelo número desejado de repetições.',
+  'Hold the contracted position for a brief pause as you squeeze your biceps.': 'Segure a posição de contração máxima por um instante enquanto contrai os bíceps.',
+  'Repeat for the desired number of repetitions, then switch arms.': 'Repita pelo número desejado de repetições e depois troque de braço.',
+  'Continue alternating sides for the desired number of repetitions.': 'Continue alternando os lados pelo número desejado de repetições.',
+  'Repeat for the desired number of repetitions, then switch sides.': 'Repita pelo número desejado de repetições e depois troque de lado.',
+  'Inhale and slowly begin to lower the dumbbells back to the starting position.': 'Inspire e comece a descer lentamente os halteres de volta à posição inicial.',
+  'Repeat for the desired number of repetitions, then switch to the other arm.': 'Repita pelo número desejado de repetições e depois faça com o outro braço.',
+  'Pause for a moment at the top, then slowly lower your upper body back down to the starting position.': 'Faça uma breve pausa no topo e desça lentamente o tronco de volta à posição inicial.',
+  'Keeping your upper arms stationary, exhale and curl the weights while contracting your biceps.': 'Mantendo os braços fixos, expire e flexione os cotovelos contraindo os bíceps.',
+  'Lie flat on your back with your knees bent and feet flat on the ground.': 'Deite-se de costas com os joelhos flexionados e os pés firmes no chão.',
+  'Bend your knees slightly and hinge forward at the hips, keeping your back straight.': 'Flexione levemente os joelhos e incline o tronco para a frente a partir do quadril, mantendo a coluna reta.',
+  'Pause for a moment at the top, then slowly lower your arms back down to the starting position.': 'Faça uma pausa no topo e desça os braços lentamente de volta à posição inicial.',
+  'Pause for a moment at the top, then slowly lower your heels back down to the starting position.': 'Faça uma pausa no topo e desça os calcanhares lentamente à posição inicial.',
+  'Continue to raise the dumbbells until your biceps are fully contracted and the dumbbells are at shoulder level.': 'Continue levantando os halteres até contrair totalmente os bíceps na altura dos ombros.',
+  'Pause for a moment at the top, then slowly lower the dumbbell back to the starting position.': 'Faça uma pausa no topo e desça lentamente o halter de volta à posição inicial.',
+  'Place your hands behind your head with your elbows pointing outwards.': 'Coloque as mãos atrás da cabeça com os cotovelos apontados para fora.',
+  'Stand facing the machine with your feet shoulder-width apart.': 'Fique de frente para o aparelho com os pés na largura dos ombros.',
+  'Set up an incline bench at a 45-degree angle.': 'Ajuste um banco inclinado em um ângulo de 45 graus.',
+  'Repeat on the other side.': 'Repita o movimento para o outro lado.',
+  'Pause for a moment at the bottom, then push through your heels to return to the starting position.': 'Faça uma pausa na descida e empurre pelos calcanhares para retornar à posição inicial.',
+  'Stand with your feet shoulder-width apart and your knees slightly bent.': 'Fique em pé com os pés na largura dos ombros e joelhos levemente flexionados.',
+  'Pause for a moment at the top, then slowly lower the dumbbells back down to the starting position.': 'Faça uma pausa no topo e desça os halteres lentamente de volta à posição inicial.',
+  'Keep your back straight and your core engaged.': 'Mantenha a coluna reta e o abdômen contraído.',
+  'Sit on a bench with your back straight and feet flat on the ground.': 'Sente-se em um banco com a coluna ereta e os pés firmes no chão.',
+  'Stand facing the cable machine with your feet shoulder-width apart.': 'Fique de frente para a polia com os pés na largura dos ombros.',
+  'Stand with your feet shoulder-width apart and arms extended to the sides.': 'Fique em pé com os pés na largura dos ombros e os braços estendidos para as laterais.',
+  'Keeping your legs straight, bend forward at the waist and reach down towards your toes with your right hand.': 'Mantendo as pernas estendidas, incline o tronco para a frente a partir da cintura e alcance os dedos dos pés com a mão direita.',
+  'As you reach down, simultaneously lift your left leg straight up behind you, maintaining balance.': 'Ao se inclinar para baixo, levante simultaneamente a perna esquerda estendida para trás, mantendo o equilíbrio.',
+  'Return to the starting position and repeat the movement with your left hand reaching towards your toes and your right leg lifting up behind you.': 'Retorne à posição inicial e repita o movimento alcançando os dedos dos pés com a mão esquerda enquanto eleva a perna direita estendida para trás.'
+};
+
+const INSTRUCTION_SUBSTITUTIONS = [
+  // Frases e orações
+  [/Repeat for the desired number of repetitions, then switch arms\.?/gi, 'Repita pelo número desejado de repetições e depois troque de braço.'],
+  [/Repeat for the desired number of repetitions, then switch sides\.?/gi, 'Repita pelo número desejado de repetições e depois troque de lado.'],
+  [/Repeat for the desired number of repetitions, then switch to the other arm\.?/gi, 'Repita pelo número desejado de repetições e depois faça com o outro braço.'],
+  [/Repeat for the desired number of repetitions\.?/gi, 'Repita pelo número desejado de repetições.'],
+  [/Continue alternating sides for the desired number of repetitions\.?/gi, 'Continue alternando os lados pelo número desejado de repetições.'],
+  [/Continue alternating sides in a pedaling motion for the desired number of repetitions\.?/gi, 'Continue alternando os lados simulando pedaladas pelo número desejado de repetições.'],
+  [/Hold the contracted position for a brief pause as you squeeze your biceps\.?/gi, 'Segure a posição de contração máxima por um instante enquanto contrai os bíceps.'],
+  [/Keeping your upper arms stationary, exhale and curl the weights while contracting your biceps\.?/gi, 'Mantendo os braços fixos, expire e flexione os cotovelos contraindo os bíceps.'],
+  [/Inhale and slowly begin to lower the dumbbells back to the starting position\.?/gi, 'Inspire e desça lentamente os halteres de volta à posição inicial.'],
+  [/Continue to raise the dumbbells until your biceps are fully contracted and the dumbbells are at shoulder level\.?/gi, 'Continue levantando os halteres até contrair totalmente os bíceps na altura dos ombros.'],
+  [/Pause for a moment at the top, then slowly lower your upper body back down to the starting position\.?/gi, 'Faça uma pausa no topo e desça lentamente o tronco à posição inicial.'],
+  [/Pause for a moment at the top, then slowly lower your arms back down to the starting position\.?/gi, 'Faça uma pausa no topo e desça lentamente os braços à posição inicial.'],
+  [/Pause for a moment at the top, then slowly lower your heels back down to the starting position\.?/gi, 'Faça uma pausa no topo e desça lentamente os calcanhares à posição inicial.'],
+  [/Pause for a moment at the top, then slowly lower the dumbbell back to the starting position\.?/gi, 'Faça uma pausa no topo e desça lentamente o halter à posição inicial.'],
+  [/Pause for a moment at the top, then slowly lower the dumbbells back down to the starting position\.?/gi, 'Faça uma pausa no topo e desça lentamente os halteres à posição inicial.'],
+  [/Pause for a moment at the top, then slowly lower the weights? back down to the starting position\.?/gi, 'Faça uma pausa no topo e desça a carga de forma controlada à posição inicial.'],
+  [/Pause for a moment at the top, then slowly return to the starting position\.?/gi, 'Faça uma pausa no topo e retorne lentamente à posição inicial.'],
+  [/Pause for a moment at the bottom, then push through your heels to return to the starting position\.?/gi, 'Faça uma pausa na descida e empurre pelos calcanhares para retornar à posição inicial.'],
+  [/Pause for a moment at the bottom, then slowly return to the starting position\.?/gi, 'Faça uma pausa na descida e retorne lentamente à posição inicial.'],
+  [/Pause for a moment at the top\.?/gi, 'Faça uma breve pausa no topo do movimento.'],
+  [/Pause for a moment at the bottom\.?/gi, 'Faça uma breve pausa no ponto mais baixo do movimento.'],
+  [/Lie flat on your back with your knees bent and feet flat on the ground\.?/gi, 'Deite-se de costas com os joelhos flexionados e os pés firmes no chão.'],
+  [/Lie flat on your back with your hands placed behind your head\.?/gi, 'Deite-se de costas com as mãos posicionadas atrás da cabeça.'],
+  [/Lie flat on a bench with your feet flat on the floor\.?/gi, 'Deite-se no banco reto com os pés bem apoiados no chão.'],
+  [/Sit on a bench with your back straight and feet flat on the ground\.?/gi, 'Sente-se em um banco com a coluna ereta e os pés firmes no chão.'],
+  [/Stand facing the machine with your feet shoulder-width apart\.?/gi, 'Fique de frente para o aparelho com os pés na largura dos ombros.'],
+  [/Stand facing the cable machine with your feet shoulder-width apart\.?/gi, 'Fique de frente para a polia com os pés na largura dos ombros.'],
+  [/Stand with your feet shoulder-width apart and arms extended to the sides\.?/gi, 'Fique em pé com os pés na largura dos ombros e os braços estendidos para as laterais.'],
+  [/Stand with your feet shoulder-width apart and your arms extended straight down by your sides\.?/gi, 'Fique em pé com os pés na largura dos ombros e os braços estendidos ao lado do corpo.'],
+  [/Stand with your feet shoulder-width apart and your knees slightly bent\.?/gi, 'Fique em pé com os pés na largura dos ombros e joelhos levemente flexionados.'],
+  [/Stand with your feet shoulder-width apart\.?/gi, 'Fique em pé com os pés na largura dos ombros.'],
+  [/Stand upright with your feet hip-width apart\.?/gi, 'Fique em pé ereto com os pés na largura do quadril.'],
+  [/Stand upright with your feet shoulder-width apart\.?/gi, 'Fique em pé ereto com os pés na largura dos ombros.'],
+  [/Set up an incline bench at a 45-degree angle\.?/gi, 'Ajuste um banco inclinado em um ângulo de 45 graus.'],
+  [/Place your hands behind your head with your elbows pointing outwards\.?/gi, 'Coloque as mãos atrás da cabeça com os cotovelos apontados para fora.'],
+  [/Bend your knees slightly and hinge forward at the hips, keeping your back straight\.?/gi, 'Flexione levemente os joelhos e incline o tronco para a frente a partir do quadril, mantendo a coluna reta.'],
+  [/Keeping your back straight and your core engaged,?/gi, 'Mantendo a coluna alinhada e o abdômen contraído,'],
+  [/Keeping your core engaged and your back straight,?/gi, 'Mantendo o abdômen contraído e a postura alinhada,'],
+  [/Keep your back straight and your core engaged\.?/gi, 'Mantenha a coluna reta e o abdômen contraído.'],
+  [/Keeping your legs straight,?/gi, 'Mantendo as pernas estendidas,'],
+  [/Keeping your arms straight,?/gi, 'Mantendo os braços estendidos,'],
+  [/Engaging your abs,?/gi, 'Contraindo o abdômen,'],
+  [/Return to the starting position and repeat the movement on the opposite side,?/gi, 'Retorne à posição inicial e repita o movimento do lado oposto,'],
+  [/Return to the starting position and repeat on the other side\.?/gi, 'Retorne à posição inicial e repita com o outro lado.'],
+  [/Repeat on the other side\.?/gi, 'Repita o movimento para o outro lado.'],
+  [/Slowly return to the starting position\.?/gi, 'Retorne de forma controlada à posição inicial.'],
+  [/Slowly lower the weights? back down\.?/gi, 'Abaixe a carga de forma controlada.'],
+  [/Push through your heels to return to the starting position\.?/gi, 'Empurre o chão com os calcanhares para retornar à posição inicial.'],
+  [/Push the barbell back up to the starting position\.?/gi, 'Empurre a barra para cima de volta à posição inicial.'],
+  [/Push the dumbbells? back up to the starting position\.?/gi, 'Empurre os halteres para cima de volta à posição inicial.'],
+  [/Hold a dumbbell in each hand\.?/gi, 'Segure um halter em cada mão.'],
+  [/Grasp the barbell with an overhand grip\.?/gi, 'Segure a barra com pegada pronada (palmas voltadas para baixo).'],
+  [/Grasp the handles? with an underhand grip\.?/gi, 'Segure os pegadores com pegada supinada (palmas voltadas para cima).'],
+  [/Lift your legs off the ground and bend your knees at a 90-degree angle\.?/gi, 'Eleve as pernas do chão flexionando os joelhos em um ângulo de 90 graus.'],
+  [/Inhale as you lower,?/gi, 'Inspire durante a descida,'],
+  [/Exhale as you push,?/gi, 'Expire ao empurrar,'],
+  [/Exhale as you lift,?/gi, 'Expire ao levantar,'],
+  [/Exhale as you curl,?/gi, 'Expire durante a contração,'],
+
+  // Termos técnicos e anatômicos
+  [/\bstarting position\b/gi, 'posição inicial'],
+  [/\bshoulder-width apart\b/gi, 'na largura dos ombros'],
+  [/\bhip-width apart\b/gi, 'na largura do quadril'],
+  [/\boverhand grip\b/gi, 'pegada pronada'],
+  [/\bunderhand grip\b/gi, 'pegada supinada'],
+  [/\bneutral grip\b/gi, 'pegada neutra'],
+  [/\bupper body\b/gi, 'tronco superior'],
+  [/\blower body\b/gi, 'membros inferiores'],
+  [/\bcore engaged\b/gi, 'abdômen ativado'],
+  [/\bback straight\b/gi, 'coluna reta'],
+  [/\bright arm\b/gi, 'braço direito'],
+  [/\bleft arm\b/gi, 'braço esquerdo'],
+  [/\bright leg\b/gi, 'perna direita'],
+  [/\bleft leg\b/gi, 'perna esquerda'],
+  [/\bright knee\b/gi, 'joelho direito'],
+  [/\bleft knee\b/gi, 'joelho esquerdo'],
+  [/\bright elbow\b/gi, 'cotovelo direito'],
+  [/\bleft elbow\b/gi, 'cotovelo esquerdo'],
+  [/\bright hand\b/gi, 'mão direita'],
+  [/\bleft hand\b/gi, 'mão esquerda'],
+  [/\bright foot\b/gi, 'pé direito'],
+  [/\bleft foot\b/gi, 'pé esquerdo'],
+  [/\band arms extended to the sides\b/gi, 'e os braços estendidos para as laterais'],
+  [/\barms extended to the sides\b/gi, 'braços estendidos para as laterais'],
+  [/\barms extended\b/gi, 'braços estendidos'],
+  [/\blegs extended\b/gi, 'pernas estendidas'],
+  [/\bknees bent\b/gi, 'joelhos flexionados'],
+  [/\bbend forward at the waist\b/gi, 'incline o tronco para a frente a partir da cintura'],
+  [/\bbend forward\b/gi, 'incline o tronco para a frente'],
+  [/\breach down towards your toes\b/gi, 'alcance em direção aos dedos dos pés'],
+  [/\breach down towards\b/gi, 'alcance em direção a'],
+  [/\breach down\b/gi, 'alcance para baixo'],
+  [/\breaching towards\b/gi, 'alcançando em direção a'],
+  [/\breach towards\b/gi, 'alcance em direção a'],
+  [/\bwith your\b/gi, 'com sua'],
+  [/\bwith both\b/gi, 'com ambos os'],
+  [/\bas you reach down\b/gi, 'ao se inclinar para baixo'],
+  [/\bas you lower\b/gi, 'ao descer'],
+  [/\bas you lift\b/gi, 'ao levantar'],
+  [/\bas you push\b/gi, 'ao empurrar'],
+  [/\bsimultaneously lift\b/gi, 'levante simultaneamente'],
+  [/\blift up\b/gi, 'eleve'],
+  [/\blifting up\b/gi, 'levantando'],
+  [/\blifting\b/gi, 'levantando'],
+  [/\blift\b/gi, 'eleve'],
+  [/\braise\b/gi, 'eleve'],
+  [/\blower\b/gi, 'abaixe'],
+  [/\bstraight up\b/gi, 'direto para cima'],
+  [/\bstraight down\b/gi, 'direto para baixo'],
+  [/\bstraight behind you\b/gi, 'estendida para trás'],
+  [/\bbehind you\b/gi, 'atrás de você'],
+  [/\bin front of you\b/gi, 'na sua frente'],
+  [/\bmaintaining balance\b/gi, 'mantendo o equilíbrio'],
+  [/\bmaintain balance\b/gi, 'mantenha o equilíbrio'],
+  [/\breturn to the\b/gi, 'retorne para a'],
+  [/\breturn to\b/gi, 'retorne à'],
+  [/\breturn\b/gi, 'retorne'],
+  [/\band repeat the movement\b/gi, 'e repita o movimento'],
+  [/\band repeat\b/gi, 'e repita'],
+  [/\brepeat the movement\b/gi, 'repita o movimento'],
+  [/\bbarbell\b/gi, 'barra'],
+  [/\bdumbbells\b/gi, 'halteres'],
+  [/\bdumbbell\b/gi, 'halter'],
+  [/\bweights\b/gi, 'pesos'],
+  [/\bweight\b/gi, 'peso'],
+  [/\bbench\b/gi, 'banco'],
+  [/\bfloor\b/gi, 'chão'],
+  [/\bground\b/gi, 'chão'],
+  [/\bknees\b/gi, 'joelhos'],
+  [/\bknee\b/gi, 'joelho'],
+  [/\belbows\b/gi, 'cotovelos'],
+  [/\belbow\b/gi, 'cotovelo'],
+  [/\bshoulders\b/gi, 'ombros'],
+  [/\bshoulder\b/gi, 'ombro'],
+  [/\bchest\b/gi, 'peitoral'],
+  [/\bthighs\b/gi, 'coxas'],
+  [/\bhips\b/gi, 'quadril'],
+  [/\bwaist\b/gi, 'cintura'],
+  [/\bfeet\b/gi, 'pés'],
+  [/\bfoot\b/gi, 'pé'],
+  [/\btoes\b/gi, 'dedos dos pés'],
+  [/\btoe\b/gi, 'dedo do pé'],
+  [/\bhands\b/gi, 'mãos'],
+  [/\bhand\b/gi, 'mão'],
+  [/\bhead\b/gi, 'cabeça'],
+  [/\btorso\b/gi, 'tronco'],
+  [/\bslowly\b/gi, 'lentamente'],
+  [/\bsimultaneously\b/gi, 'simultaneamente'],
+  [/\bstraightening\b/gi, 'estendendo'],
+  [/\bbending\b/gi, 'flexionando'],
+  [/\blowering\b/gi, 'abaixando'],
+  [/\bstraight\b/gi, 'estendido'],
+  [/\bdesired number of repetitions\b/gi, 'número desejado de repetições'],
+  [/\band\b/gi, 'e'],
+  [/\byour\b/gi, 'sua'],
+  [/\bthe\b/gi, 'o'],
+  [/\bwith\b/gi, 'com'],
+  [/\bto\b/gi, 'para'],
+  [/\bfor\b/gi, 'por'],
+  [/\bin\b/gi, 'em'],
+  [/\bon\b/gi, 'no'],
+  [/\bat\b/gi, 'no'],
+  [/\bfrom\b/gi, 'de'],
+  [/\bof\b/gi, 'de'],
+  [/\bas\b/gi, 'ao'],
+  [/\byou\b/gi, 'você']
+];
+
 function translateInstruction(text) {
   let s = String(text || '').replace(/^Step:\s*\d+\s*/i, '').trim();
   if (!s) return '';
 
-  const phrases = [
-    [/Repeat for the desired number of repetitions\.?/gi, 'Repita pelo número desejado de repetições.'],
-    [/Continue alternating sides for the desired number of repetitions\.?/gi, 'Continue alternando os lados pelo número desejado de repetições.'],
-    [/Continue alternating sides in a pedaling motion for the desired number of repetitions\.?/gi, 'Continue alternando os lados em movimento de pedalada pelo número desejado de repetições.'],
-    [/Pause for a moment at the top, then slowly lower your upper body back down to the starting position\.?/gi, 'Faça uma pausa no topo e desça o tronco lentamente de volta à posição inicial.'],
-    [/Pause for a moment at the top, then slowly lower the weights? back down to the starting position\.?/gi, 'Faça uma pausa no topo e desça a carga de forma controlada à posição inicial.'],
-    [/Pause for a moment at the top, then slowly return to the starting position\.?/gi, 'Faça uma breve pausa no topo e retorne lentamente à posição inicial.'],
-    [/Pause for a moment at the bottom, then slowly return to the starting position\.?/gi, 'Faça uma breve pausa na descida e retorne lentamente à posição inicial.'],
-    [/Pause for a moment at the top\.?/gi, 'Faça uma breve pausa no ponto de maior contração.'],
-    [/Pause for a moment at the bottom\.?/gi, 'Faça uma breve pausa na fase inferior do movimento.'],
-    [/Lie flat on your back with your knees bent and feet flat on the ground\.?/gi, 'Deite-se de costas com os joelhos flexionados e os pés firmes no chão.'],
-    [/Lie flat on your back with your hands placed behind your head\.?/gi, 'Deite-se de costas com as mãos posicionadas atrás da cabeça.'],
-    [/Lie flat on a bench with your feet flat on the floor\.?/gi, 'Deite-se no banco reto com os pés bem apoiados no chão.'],
-    [/Stand with your feet shoulder-width apart and your arms extended straight down by your sides\.?/gi, 'Fique em pé com os pés na largura dos ombros e os braços estendidos ao lado do corpo.'],
-    [/Stand with your feet shoulder-width apart and arms extended to the sides\.?/gi, 'Fique em pé com os pés na largura dos ombros e os braços estendidos para os lados.'],
-    [/Stand with your feet shoulder-width apart\.?/gi, 'Fique em pé com os pés na largura dos ombros.'],
-    [/Stand upright with your feet hip-width apart\.?/gi, 'Fique em pé ereto com os pés na largura do quadril.'],
-    [/Stand upright with your feet shoulder-width apart\.?/gi, 'Fique em pé ereto com os pés na largura dos ombros.'],
-    [/Keeping your back straight and your core engaged,?/gi, 'Mantendo a coluna alinhada e o abdômen contraído,'],
-    [/Keeping your core engaged and your back straight,?/gi, 'Mantendo o abdômen contraído e a postura alinhada,'],
-    [/Keeping your legs straight,?/gi, 'Mantendo as pernas estendidas,'],
-    [/Keeping your arms straight,?/gi, 'Mantendo os braços estendidos,'],
-    [/Engaging your abs,?/gi, 'Contraindo o abdômen,'],
-    [/Return to the starting position and repeat the movement on the opposite side,?/gi, 'Retorne à posição inicial e repita o movimento do lado oposto,'],
-    [/Return to the starting position and repeat on the other side\.?/gi, 'Retorne à posição inicial e repita com o outro lado.'],
-    [/Repeat on the other side\.?/gi, 'Repita o movimento para o outro lado.'],
-    [/Slowly return to the starting position\.?/gi, 'Retorne de forma controlada à posição inicial.'],
-    [/Slowly lower the weights? back down\.?/gi, 'Abaixe a carga de forma controlada.'],
-    [/Push through your heels to return to the starting position\.?/gi, 'Empurre o chão com os calcanhares para retornar à posição inicial.'],
-    [/Push the barbell back up to the starting position\.?/gi, 'Empurre a barra para cima de volta à posição inicial.'],
-    [/Push the dumbbells? back up to the starting position\.?/gi, 'Empurre os halteres para cima de volta à posição inicial.'],
-    [/Hold a dumbbell in each hand\.?/gi, 'Segure um halter em cada mão.'],
-    [/Grasp the barbell with an overhand grip\.?/gi, 'Segure a barra com pegada pronada (palmas voltadas para baixo).'],
-    [/Grasp the handles? with an underhand grip\.?/gi, 'Segure os pegadores com pegada supinada (palmas voltadas para cima).'],
-    [/Lift your legs off the ground and bend your knees at a 90-degree angle\.?/gi, 'Eleve as pernas do chão flexionando os joelhos em um ângulo de 90 graus.'],
-    [/Inhale as you lower,?/gi, 'Inspire durante a descida,'],
-    [/Exhale as you push,?/gi, 'Expire ao empurrar,'],
-    [/Exhale as you lift,?/gi, 'Expire ao levantar,'],
-    [/Exhale as you curl,?/gi, 'Expire durante a contração,']
-  ];
+  if (EXACT_INSTRUCTION_DICTIONARY[s]) {
+    return EXACT_INSTRUCTION_DICTIONARY[s];
+  }
 
-  for (const [pattern, rep] of phrases) {
+  for (const [pattern, rep] of INSTRUCTION_SUBSTITUTIONS) {
     s = s.replace(pattern, rep);
   }
 
-  const terms = [
-    [/\bstarting position\b/gi, 'posição inicial'],
-    [/\bshoulder-width apart\b/gi, 'na largura dos ombros'],
-    [/\bhip-width apart\b/gi, 'na largura do quadril'],
-    [/\boverhand grip\b/gi, 'pegada pronada'],
-    [/\bunderhand grip\b/gi, 'pegada supinada'],
-    [/\bneutral grip\b/gi, 'pegada neutra'],
-    [/\bupper body\b/gi, 'tronco superior'],
-    [/\blower body\b/gi, 'membros inferiores'],
-    [/\bcore engaged\b/gi, 'abdômen ativado'],
-    [/\bback straight\b/gi, 'coluna reta'],
-    [/\bright arm\b/gi, 'braço direito'],
-    [/\bleft arm\b/gi, 'braço esquerdo'],
-    [/\bright leg\b/gi, 'perna direita'],
-    [/\bleft leg\b/gi, 'perna esquerda'],
-    [/\bright knee\b/gi, 'joelho direito'],
-    [/\bleft knee\b/gi, 'joelho esquerdo'],
-    [/\bright elbow\b/gi, 'cotovelo direito'],
-    [/\bleft elbow\b/gi, 'cotovelo esquerdo'],
-    [/\bright hand\b/gi, 'mão direita'],
-    [/\bleft hand\b/gi, 'mão esquerda'],
-    [/\bright foot\b/gi, 'pé direito'],
-    [/\bleft foot\b/gi, 'pé esquerdo'],
-    [/\band arms extended to the sides\b/gi, 'e os braços estendidos para as laterais'],
-    [/\barms extended to the sides\b/gi, 'braços estendidos para as laterais'],
-    [/\barms extended\b/gi, 'braços estendidos'],
-    [/\blegs extended\b/gi, 'pernas estendidas'],
-    [/\bknees bent\b/gi, 'joelhos flexionados'],
-    [/\bbend forward at the waist\b/gi, 'incline-se para a frente a partir da cintura'],
-    [/\bbend forward\b/gi, 'incline-se para a frente'],
-    [/\breach down towards your toes\b/gi, 'alcance em direção aos dedos dos pés'],
-    [/\breach down towards\b/gi, 'alcance em direção a'],
-    [/\breach down\b/gi, 'alcance para baixo'],
-    [/\breaching towards\b/gi, 'alcançando em direção a'],
-    [/\breach towards\b/gi, 'alcance em direção a'],
-    [/\bwith your\b/gi, 'com sua'],
-    [/\bwith both\b/gi, 'com ambos os'],
-    [/\bas you reach down\b/gi, 'ao se inclinar para baixo'],
-    [/\bas you lower\b/gi, 'ao descer'],
-    [/\bas you lift\b/gi, 'ao levantar'],
-    [/\bas you push\b/gi, 'ao empurrar'],
-    [/\bsimultaneously lift\b/gi, 'levante simultaneamente'],
-    [/\blift\b/gi, 'eleve'],
-    [/\blifting up\b/gi, 'levantando'],
-    [/\blifting\b/gi, 'levantando'],
-    [/\blift up\b/gi, 'eleve'],
-    [/\braise\b/gi, 'eleve'],
-    [/\blower\b/gi, 'abaixe'],
-    [/\bstraight up\b/gi, 'direto para cima'],
-    [/\bstraight down\b/gi, 'direto para baixo'],
-    [/\bstraight behind you\b/gi, 'estendida para trás'],
-    [/\bbehind you\b/gi, 'atrás de você'],
-    [/\bin front of you\b/gi, 'na sua frente'],
-    [/\bmaintaining balance\b/gi, 'mantendo o equilíbrio'],
-    [/\bmaintain balance\b/gi, 'mantenha o equilíbrio'],
-    [/\breturn to the\b/gi, 'retorne para a'],
-    [/\breturn to\b/gi, 'retorne à'],
-    [/\breturn\b/gi, 'retorne'],
-    [/\band repeat the movement\b/gi, 'e repita o movimento'],
-    [/\band repeat\b/gi, 'e repita'],
-    [/\brepeat the movement\b/gi, 'repita o movimento'],
-    [/\bbarbell\b/gi, 'barra'],
-    [/\bdumbbells\b/gi, 'halteres'],
-    [/\bdumbbell\b/gi, 'halter'],
-    [/\bweights\b/gi, 'pesos'],
-    [/\bweight\b/gi, 'peso'],
-    [/\bbench\b/gi, 'banco'],
-    [/\bfloor\b/gi, 'chão'],
-    [/\bground\b/gi, 'chão'],
-    [/\bknees\b/gi, 'joelhos'],
-    [/\bknee\b/gi, 'joelho'],
-    [/\belbows\b/gi, 'cotovelos'],
-    [/\belbow\b/gi, 'cotovelo'],
-    [/\bshoulders\b/gi, 'ombros'],
-    [/\bshoulder\b/gi, 'ombro'],
-    [/\bchest\b/gi, 'peitoral'],
-    [/\bthighs\b/gi, 'coxas'],
-    [/\bhips\b/gi, 'quadril'],
-    [/\bwaist\b/gi, 'cintura'],
-    [/\bfeet\b/gi, 'pés'],
-    [/\bfoot\b/gi, 'pé'],
-    [/\btoes\b/gi, 'pontas dos pés'],
-    [/\btoe\b/gi, 'ponta do pé'],
-    [/\bhands\b/gi, 'mãos'],
-    [/\bhand\b/gi, 'mão'],
-    [/\bhead\b/gi, 'cabeça'],
-    [/\btorso\b/gi, 'tronco'],
-    [/\bslowly\b/gi, 'lentamente'],
-    [/\bsimultaneously\b/gi, 'simultaneamente'],
-    [/\bstraightening\b/gi, 'estendendo'],
-    [/\bbending\b/gi, 'flexionando'],
-    [/\blowering\b/gi, 'abaixando'],
-    [/\bstraight\b/gi, 'estendido'],
-    [/\bdesired number of repetitions\b/gi, 'número desejado de repetições']
-  ];
-
-  for (const [pattern, rep] of terms) {
-    s = s.replace(pattern, rep);
-  }
+  s = s.replace(/\bcom sua mão\b/gi, 'com a mão')
+       .replace(/\bcom sua perna\b/gi, 'com a perna')
+       .replace(/\bo dedos dos pés\b/gi, 'os dedos dos pés')
+       .replace(/\bo dedos\b/gi, 'os dedos')
+       .replace(/\bo pés\b/gi, 'os pés')
+       .replace(/\bpara o dedos\b/gi, 'para os dedos')
+       .replace(/\bpara o lados\b/gi, 'para os lados')
+       .replace(/\bno chão\b/gi, 'ao chão')
+       .replace(/\s{2,}/g, ' ')
+       .trim();
 
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
