@@ -32,6 +32,9 @@ const DATA_DIR = IS_VERCEL ? path.join(os.tmpdir(), 'mogger-data') : path.join(R
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://iqndsdpaqgpampppdfnr.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const ADMIN_EMAIL = 'rafaelliborio57@gmail.com';
 const SESSION_TTL = 1000 * 60 * 60 * 24 * 7;
 const sessions = new Map();
 const loginAttempts = new Map();
@@ -125,6 +128,24 @@ function requireAuth(user) { if (!user) throw Object.assign(new Error('Faça log
 function requireAdmin(user) { requireAuth(user); if (!isAdmin(user)) throw Object.assign(new Error('Apenas o administrador pode executar esta ação.'), { status: 403 }); }
 function logWorkout(store, userId) { return store.workouts.filter(w => w.userId === userId); }
 
+async function requireSupabaseAdmin(req) {
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    throw Object.assign(new Error('A contagem de usuários ainda não foi configurada no servidor.'), { status: 503 });
+  }
+  const authorization = req.headers.authorization || '';
+  if (!authorization.startsWith('Bearer ')) {
+    throw Object.assign(new Error('Faça login para continuar.'), { status: 401 });
+  }
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: authorization }
+  });
+  if (!response.ok) throw Object.assign(new Error('Sessão inválida ou expirada.'), { status: 401 });
+  const supabaseUser = await response.json();
+  if (supabaseUser.email?.toLowerCase() !== ADMIN_EMAIL) {
+    throw Object.assign(new Error('Apenas o administrador pode executar esta ação.'), { status: 403 });
+  }
+}
+
 async function routeApi(req, res, url) {
   const method = req.method || 'GET';
   const pathname = url.pathname;
@@ -194,6 +215,16 @@ async function routeApi(req, res, url) {
     if (pathname === '/api/auth/me' && method === 'GET') {
       if (!user) return json(res, 200, { user: null });
       return json(res, 200, { user: safeUser(user) });
+    }
+
+    if (pathname === '/api/admin/user-count' && method === 'GET') {
+      await requireSupabaseAdmin(req);
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?page=1&per_page=1`, {
+        headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` }
+      });
+      if (!response.ok) throw Object.assign(new Error('Não foi possível consultar os usuários cadastrados.'), { status: 502 });
+      const data = await response.json();
+      return json(res, 200, { count: Number(data.total || 0) });
     }
 
     requireAuth(user);

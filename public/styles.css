@@ -934,7 +934,17 @@ a {
   flex-wrap: wrap;
 }
 
-/* Variantes de Botões Shadcn */
+/* ==============================================================================
+   SHADCN/UI CORE COMPONENT LIBRARY PRIMITIVES & VARIANTS
+   Botões, Cards, Badges, Inputs, Dialogs, Tabs, Avatars, Alerts, Tables, Separators, Progress
+   ============================================================================== */
+
+/* ------------------------------------------------------------------------------
+   1. BUTTON COMPONENT (shadcn/ui Button)
+   Variants: default, secondary, destructive, outline, ghost, link
+   Sizes: default, sm, lg, icon, icon-sm
+   ------------------------------------------------------------------------------ */
+.ui-button,
 .btn {
   display: inline-flex;
   align-items: center;
@@ -942,75 +952,684 @@ a {
   gap: 0.5rem;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
-  padding: 0.65rem 1.1rem;
+  padding: 0.625rem 1.15rem;
+  font-family: inherit;
   font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  color: hsl(var(--foreground));
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  outline: none;
+  box-shadow: var(--shadow-sm);
 }
+
+.ui-button:focus-visible,
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
+.ui-button:hover,
 .btn:hover {
   transform: translateY(-1px);
 }
+
+.ui-button:active,
 .btn:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
+.ui-button:disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Button Variants */
+.ui-button--default,
 .btn-primary,
 .btn-default {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   border-color: rgba(196, 243, 88, 0.4);
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(196, 243, 88, 0.2);
+  box-shadow: 0 1px 3px rgba(196, 243, 88, 0.25), 0 0 16px rgba(196, 243, 88, 0.18);
 }
+.ui-button--default:hover,
 .btn-primary:hover,
 .btn-default:hover {
   filter: brightness(1.08);
-  box-shadow: 0 4px 12px rgba(196, 243, 88, 0.3);
+  box-shadow: 0 4px 16px rgba(196, 243, 88, 0.38);
 }
 
+.ui-button--secondary,
 .btn-secondary {
   background: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
   border-color: hsl(var(--border));
 }
+.ui-button--secondary:hover,
 .btn-secondary:hover {
   background: hsl(var(--border));
+  color: #fff;
 }
 
+.ui-button--outline,
 .btn-outline {
   background: transparent;
   border-color: hsl(var(--border));
   color: hsl(var(--foreground));
 }
+.ui-button--outline:hover,
 .btn-outline:hover {
   background: hsl(var(--secondary));
   border-color: hsl(var(--muted-foreground));
 }
 
+.ui-button--destructive,
 .btn-danger,
 .btn-destructive {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.35);
   color: #fca5a5;
 }
+.ui-button--destructive:hover,
 .btn-danger:hover,
 .btn-destructive:hover {
   background: hsl(var(--destructive));
-  color: #fff;
+  border-color: hsl(var(--destructive));
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
 }
 
-.btn-small {
-  padding: 0.45rem 0.75rem;
-  font-size: 0.8rem;
+.ui-button--ghost,
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: hsl(var(--muted-foreground));
+}
+.ui-button--ghost:hover,
+.btn-ghost:hover {
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+
+.ui-button--link,
+.btn-link {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  padding: 0;
+  height: auto;
+}
+.ui-button--link:hover,
+.btn-link:hover {
+  filter: brightness(1.15);
+  transform: none;
+}
+
+/* Button Sizes */
+.ui-button--sm,
+.btn-small,
+.btn-sm {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
   border-radius: var(--radius-sm);
 }
 
-.btn:disabled {
+.ui-button--lg,
+.btn-lg {
+  padding: 0.85rem 1.6rem;
+  font-size: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.ui-button--icon,
+.btn-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.ui-button--icon-sm,
+.btn-icon-sm {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------------------------
+   2. CARD COMPONENT (shadcn/ui Card)
+   ------------------------------------------------------------------------------ */
+.ui-card,
+.panel {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.ui-card:hover,
+.panel:hover {
+  border-color: rgba(196, 243, 88, 0.25);
+}
+
+.ui-card-header,
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.ui-card-title,
+.panel-heading h3 {
+  margin: 0;
+  font: 800 1.2rem/1.25 'Manrope', sans-serif;
+  letter-spacing: -0.025em;
+  color: hsl(var(--foreground));
+}
+
+.ui-card-description,
+.panel-heading p {
+  margin: 0.35rem 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.ui-card-content {
+  padding: 0;
+}
+
+.ui-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* ------------------------------------------------------------------------------
+   3. BADGE COMPONENT (shadcn/ui Badge)
+   Variants: default, secondary, destructive, outline, emerald, amber, violet, primary
+   ------------------------------------------------------------------------------ */
+.ui-badge,
+.meta-chip,
+.workout-tag,
+.exercise-badge,
+.role-chip,
+.status-chip,
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ui-badge--default,
+.ui-badge--primary {
+  background: rgba(196, 243, 88, 0.16);
+  border-color: rgba(196, 243, 88, 0.4);
+  color: hsl(var(--primary));
+}
+
+.ui-badge--secondary,
+.meta-chip,
+.workout-tag,
+.role-chip {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.ui-badge--outline {
+  background: transparent;
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+.ui-badge--destructive {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.ui-badge--emerald,
+.status-chip {
+  background: rgba(52, 211, 153, 0.16);
+  border-color: rgba(52, 211, 153, 0.38);
+  color: #34d399;
+}
+.status-chip.inactive {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.38);
+  color: #fca5a5;
+}
+
+.ui-badge--amber {
+  background: rgba(251, 191, 36, 0.16);
+  border-color: rgba(251, 191, 36, 0.38);
+  color: #fbbf24;
+}
+
+.ui-badge--violet {
+  background: rgba(167, 139, 250, 0.16);
+  border-color: rgba(167, 139, 250, 0.38);
+  color: #a78bfa;
+}
+
+/* ------------------------------------------------------------------------------
+   4. FORM & INPUT COMPONENTS (shadcn/ui Form, Input, Label, Select)
+   ------------------------------------------------------------------------------ */
+.ui-form-item,
+.form-group {
+  margin-bottom: 1.15rem;
+}
+
+.ui-label,
+.ui-form-label,
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.5rem;
+}
+
+.ui-input,
+.ui-select,
+.ui-textarea,
+.field {
+  display: flex;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid hsl(var(--input));
+  background: hsl(var(--popover));
+  padding: 0.7rem 0.95rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: hsl(var(--foreground));
+  line-height: 1.5;
+  transition: border-color 0.18s, box-shadow 0.18s, background-color 0.18s;
+  outline: none;
+}
+
+.ui-input:focus-visible,
+.ui-select:focus-visible,
+.ui-textarea:focus-visible,
+.field:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+}
+
+.ui-input::placeholder,
+.ui-textarea::placeholder,
+.field::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.8;
+}
+
+.ui-input:disabled,
+.ui-select:disabled,
+.ui-textarea:disabled,
+.field:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  transform: none !important;
+  background: hsl(var(--muted));
 }
+
+.ui-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 1.1rem;
+  padding-right: 2.6rem;
+  cursor: pointer;
+}
+
+.ui-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.ui-form-description {
+  font-size: 0.8rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.35rem;
+}
+
+.ui-form-message {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(var(--destructive));
+  margin-top: 0.35rem;
+}
+
+/* ------------------------------------------------------------------------------
+   5. TABS COMPONENT (shadcn/ui Tabs)
+   ------------------------------------------------------------------------------ */
+.ui-tabs {
+  width: 100%;
+}
+
+.ui-tabs-list,
+.auth-tabs,
+.scale-selector {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: hsl(var(--muted));
+  padding: 0.25rem;
+  border: 1px solid hsl(var(--border-subtle));
+  gap: 0.25rem;
+}
+
+.ui-tabs-trigger,
+.auth-tab,
+.scale-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.95rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+}
+
+.ui-tabs-trigger:hover,
+.auth-tab:hover,
+.scale-btn:hover {
+  color: hsl(var(--foreground));
+}
+
+.ui-tabs-trigger[data-state="active"],
+.auth-tab.active,
+.scale-btn.active {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid hsl(var(--border));
+}
+
+.ui-tabs-content {
+  margin-top: 1rem;
+  outline: none;
+}
+
+/* ------------------------------------------------------------------------------
+   6. ALERT & CALLOUT COMPONENT (shadcn/ui Alert)
+   ------------------------------------------------------------------------------ */
+.ui-alert,
+.summary-callout,
+.sidebar-tip,
+.form-error {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid hsl(var(--border));
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
+.ui-alert--default {
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
+}
+
+.ui-alert--destructive,
+.form-error {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.ui-alert--primary,
+.summary-callout {
+  background: linear-gradient(135deg, rgba(196, 243, 88, 0.14) 0%, rgba(196, 243, 88, 0.04) 100%);
+  border-color: rgba(196, 243, 88, 0.32);
+  color: hsl(var(--foreground));
+}
+
+.ui-alert-title {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ui-alert-description {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------------------
+   7. AVATAR COMPONENT (shadcn/ui Avatar)
+   ------------------------------------------------------------------------------ */
+.ui-avatar,
+.avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.ui-avatar img,
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ui-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+
+/* ------------------------------------------------------------------------------
+   8. TABLE COMPONENT (shadcn/ui Table)
+   ------------------------------------------------------------------------------ */
+.ui-table-container,
+.table-wrap {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid hsl(var(--border));
+}
+
+.ui-table,
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.ui-table-header,
+.data-table thead {
+  background: hsl(var(--secondary));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.ui-table-head,
+.data-table th {
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+}
+
+.ui-table-row,
+.data-table tbody tr {
+  border-bottom: 1px solid hsl(var(--border));
+  transition: background-color 0.15s ease;
+}
+
+.ui-table-row:hover,
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.ui-table-cell,
+.data-table td {
+  padding: 0.95rem 1rem;
+  vertical-align: middle;
+  color: hsl(var(--foreground));
+}
+
+.ui-table-row:last-child,
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* ------------------------------------------------------------------------------
+   9. SEPARATOR COMPONENT (shadcn/ui Separator)
+   ------------------------------------------------------------------------------ */
+.ui-separator,
+.proof-divider {
+  shrink: 0;
+  height: 1px;
+  width: 100%;
+  background-color: hsl(var(--border));
+  border: none;
+  margin: 1.25rem 0;
+}
+
+.ui-separator--vertical,
+.proof-divider {
+  width: 1px;
+  height: 2.2rem;
+  margin: 0 0.5rem;
+}
+
+/* ------------------------------------------------------------------------------
+   10. PROGRESS COMPONENT (shadcn/ui Progress)
+   ------------------------------------------------------------------------------ */
+.ui-progress {
+  position: relative;
+  height: 0.5rem;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: hsl(var(--secondary));
+}
+
+.ui-progress-indicator,
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  background-color: hsl(var(--primary));
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 9999px;
+  box-shadow: 0 0 12px rgba(196, 243, 88, 0.45);
+}
+
+/* ------------------------------------------------------------------------------
+   11. SKELETON & TOOLTIP (shadcn/ui Skeleton, Tooltip)
+   ------------------------------------------------------------------------------ */
+.ui-skeleton {
+  border-radius: var(--radius-md);
+  background-color: hsl(var(--muted));
+  animation: pulse 1.8s infinite ease-in-out;
+}
+
+.ui-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.ui-tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  border-radius: var(--radius-sm);
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.ui-tooltip:hover .ui-tooltip-content {
+  opacity: 1;
+}
+
 
 /* ==============================================================================
    HERO BANNER FITNESS ELEGANTE
@@ -1963,39 +2582,51 @@ a {
 /* ==============================================================================
    MODAIS SHADCN COM BACKDROP BLUR & TOASTS
    ============================================================================== */
+.ui-dialog-backdrop,
 .modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: fadeIn 0.15s ease-out;
+  animation: fadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.ui-dialog,
+.ui-dialog-content,
 .modal {
+  position: relative;
   width: 100%;
-  max-width: 490px;
+  max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
   background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  padding: 1.8rem;
-  animation: zoomIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(0, 0, 0, 0.6);
+  padding: 1.85rem;
+  animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
 }
+.ui-dialog--wide,
 .modal.modal-wide {
-  max-width: 760px;
+  max-width: 780px;
+}
+.ui-sheet-content,
+.modal.modal-sheet {
+  max-width: 440px;
 }
 @keyframes zoomIn {
-  from { opacity: 0; transform: scale(0.96); }
+  from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
 
+.ui-dialog-header,
 .modal-head {
   display: flex;
   align-items: flex-start;
@@ -2003,40 +2634,57 @@ a {
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
+.ui-dialog-title,
 .modal-head h3 {
   margin: 0;
-  font: 800 1.35rem 'Manrope', sans-serif;
-  letter-spacing: -0.02em;
+  font: 800 1.35rem/1.25 'Manrope', sans-serif;
+  letter-spacing: -0.025em;
+  color: hsl(var(--foreground));
 }
+.ui-dialog-description,
 .modal-head p {
-  margin: 0.3rem 0 0;
+  margin: 0.35rem 0 0;
   color: hsl(var(--muted-foreground));
-  font-size: 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
 }
 
+.ui-dialog-close,
 .modal-close {
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border: 1px solid hsl(var(--border));
   background: hsl(var(--secondary));
   border-radius: var(--radius-md);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   color: hsl(var(--muted-foreground));
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  cursor: pointer;
   transition: all 0.15s ease;
+  padding: 0;
 }
+.ui-dialog-close:hover,
 .modal-close:hover {
   background: hsl(var(--border));
   color: hsl(var(--foreground));
+  transform: translateY(-1px);
+}
+.ui-dialog-close:active,
+.modal-close:active {
+  transform: scale(0.95);
 }
 
+.ui-dialog-footer,
 .modal-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.65rem;
-  margin-top: 1.6rem;
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid hsl(var(--border-subtle));
 }
 
 #toast-region {
@@ -2049,31 +2697,36 @@ a {
   gap: 0.65rem;
   pointer-events: none;
 }
+.ui-toast,
 .toast {
-  min-width: 260px;
-  max-width: 380px;
-  padding: 0.9rem 1.15rem;
-  border-radius: var(--radius-md);
+  min-width: 280px;
+  max-width: 420px;
+  padding: 0.95rem 1.25rem;
+  border-radius: var(--radius-lg);
   color: hsl(var(--foreground));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  box-shadow: var(--shadow-lg);
-  font-size: 0.88rem;
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.4);
+  font-size: 0.9rem;
   line-height: 1.5;
   animation: toastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   border-left: 4px solid hsl(var(--primary));
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
+  pointer-events: auto;
+  backdrop-filter: blur(12px);
 }
+.ui-toast--error,
 .toast.error {
   border-left-color: hsl(var(--destructive));
 }
+.ui-toast--success,
 .toast.success {
   border-left-color: hsl(var(--primary));
 }
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 

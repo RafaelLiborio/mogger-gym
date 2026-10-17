@@ -32,6 +32,7 @@ const state = {
   workouts: [],
   logs: [],
   stats: {},
+  userCount: null,
   users: [],
   exercises: [],
   exercisesReady: false,
@@ -674,16 +675,28 @@ async function api(path, options = {}) {
 
 function toast(message, type = 'success') {
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
+  el.className = `ui-toast toast ${type === 'error' ? 'ui-toast--error error' : 'ui-toast--success success'}`;
   const iconName = type === 'error' ? 'info' : 'check';
-  el.innerHTML = `${icon(iconName)} <span>${esc(message)}</span>`;
+  el.innerHTML = `
+    <div class="icon-badge ${type === 'error' ? 'destructive' : 'primary'}" style="width:2rem;height:2rem;border-radius:9999px">
+      ${icon(iconName)}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;font-size:0.85rem;letter-spacing:-0.01em">${type === 'error' ? 'Atenção' : 'Sucesso'}</div>
+      <div style="font-size:0.825rem;color:hsl(var(--muted-foreground));line-height:1.4">${esc(message)}</div>
+    </div>
+    <button class="ui-dialog-close" style="width:1.75rem;height:1.75rem;font-size:0.9rem" aria-label="Fechar notificação">
+      ${icon('x')}
+    </button>
+  `;
+  el.querySelector('button')?.addEventListener('click', () => el.remove());
   toastRegion.appendChild(el);
   hydrateIcons(el);
   window.setTimeout(() => {
     el.style.opacity = '0';
-    el.style.transform = 'translateY(8px)';
+    el.style.transform = 'translateY(12px) scale(0.95)';
     window.setTimeout(() => el.remove(), 250);
-  }, 3500);
+  }, 4000);
 }
 
 function showLoading(message = 'Carregando…') {
@@ -709,6 +722,220 @@ function hydrateIcons(root = document) {
       attrs: { 'stroke-width': 2 }
     });
   }
+}
+
+/* ==============================================================================
+   SHADCN/UI COMPONENT GENERATORS (100% BASEADOS NO SHADCN)
+   ============================================================================== */
+function uiButton({
+  text = '',
+  icon: iconName = '',
+  iconPosition = 'left',
+  variant = 'default', // 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'link'
+  size = 'default',    // 'default' | 'sm' | 'lg' | 'icon' | 'icon-sm'
+  className = '',
+  attrs = '',
+  action = '',
+  type = 'button',
+  title = '',
+  ariaLabel = ''
+} = {}) {
+  const variantClass = variant ? `ui-button--${variant} btn-${variant === 'default' ? 'primary' : variant}` : 'ui-button--default btn-primary';
+  const sizeClass = size && size !== 'default' ? `ui-button--${size} btn-${size}` : '';
+  const actionAttr = action ? `data-action="${esc(action)}"` : '';
+  const titleAttr = title ? `title="${esc(title)}"` : '';
+  const labelAttr = ariaLabel ? `aria-label="${esc(ariaLabel)}"` : (size && size.startsWith('icon') && title ? `aria-label="${esc(title)}"` : '');
+  
+  const iconHtml = iconName ? icon(iconName) : '';
+  const content = iconPosition === 'right'
+    ? `${text ? `<span>${esc(text)}</span>` : ''} ${iconHtml}`
+    : `${iconHtml} ${text ? `<span>${esc(text)}</span>` : ''}`;
+
+  return `<button type="${type}" class="ui-button btn ${variantClass} ${sizeClass} ${className}" ${actionAttr} ${titleAttr} ${labelAttr} ${attrs}>${content}</button>`;
+}
+
+function uiBadge({
+  text = '',
+  variant = 'default', // 'default' | 'secondary' | 'outline' | 'destructive' | 'emerald' | 'amber' | 'violet' | 'primary'
+  icon: iconName = '',
+  className = '',
+  attrs = ''
+} = {}) {
+  const variantClass = variant ? `ui-badge--${variant}` : 'ui-badge--default';
+  const iconHtml = iconName ? `${icon(iconName)} ` : '';
+  return `<span class="ui-badge ${variantClass} ${className}" ${attrs}>${iconHtml}${esc(text)}</span>`;
+}
+
+function uiCard({
+  title = '',
+  description = '',
+  headerExtra = '',
+  content = '',
+  footer = '',
+  className = '',
+  attrs = '',
+  tag = 'section'
+} = {}) {
+  const hasHeader = title || description || headerExtra;
+  return `
+    <${tag} class="ui-card panel ${className}" ${attrs}>
+      ${hasHeader ? `
+        <div class="ui-card-header panel-heading">
+          <div>
+            ${title ? `<h3 class="ui-card-title">${title}</h3>` : ''}
+            ${description ? `<p class="ui-card-description">${description}</p>` : ''}
+          </div>
+          ${headerExtra ? `<div>${headerExtra}</div>` : ''}
+        </div>
+      ` : ''}
+      <div class="ui-card-content">${content}</div>
+      ${footer ? `<div class="ui-card-footer">${footer}</div>` : ''}
+    </${tag}>`;
+}
+
+function uiAlert({
+  title = '',
+  description = '',
+  variant = 'default', // 'default' | 'destructive' | 'primary' | 'warning' | 'info'
+  icon: iconName = '',
+  className = '',
+  id = '',
+  attrs = ''
+} = {}) {
+  const iconChoice = iconName || (variant === 'destructive' ? 'info' : (variant === 'primary' ? 'sparkles' : 'shield'));
+  const idAttr = id ? `id="${esc(id)}"` : '';
+  return `
+    <div ${idAttr} class="ui-alert ui-alert--${variant} ${className}" role="alert" ${attrs}>
+      <div style="display:flex;align-items:flex-start;gap:0.75rem">
+        <span style="color:${variant==='primary'?'hsl(var(--primary))':variant==='destructive'?'#fca5a5':'currentColor'};flex-shrink:0;margin-top:2px">
+          ${icon(iconChoice)}
+        </span>
+        <div style="flex:1;min-width:0">
+          ${title ? `<div class="ui-alert-title">${esc(title)}</div>` : ''}
+          <div class="ui-alert-description">${description}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function uiAvatar({
+  name = '',
+  src = '',
+  size = 'default', // 'default' | 'sm' | 'lg'
+  className = '',
+  attrs = ''
+} = {}) {
+  const sizeStyle = size === 'lg' ? 'width:3rem;height:3rem;font-size:1.15rem' : (size === 'sm' ? 'width:2rem;height:2rem;font-size:0.75rem' : '');
+  const content = src
+    ? `<img src="${esc(src)}" alt="${esc(name)}" class="ui-avatar-image" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="ui-avatar-fallback" style="display:none">${esc(initials(name))}</span>`
+    : `<span class="ui-avatar-fallback">${esc(initials(name))}</span>`;
+  return `<div class="ui-avatar avatar ${className}" style="${sizeStyle}" ${attrs}>${content}</div>`;
+}
+
+function uiInput({
+  id = '',
+  name = '',
+  type = 'text',
+  value = '',
+  placeholder = '',
+  label = '',
+  description = '',
+  error = '',
+  required = false,
+  min = '',
+  max = '',
+  minlength = '',
+  maxlength = '',
+  className = '',
+  attrs = '',
+  disabled = false,
+  autocomplete = ''
+} = {}) {
+  const idAttr = id ? `id="${esc(id)}"` : '';
+  const nameAttr = name ? `name="${esc(name)}"` : '';
+  const valAttr = value !== undefined && value !== null ? `value="${esc(value)}"` : '';
+  const phAttr = placeholder ? `placeholder="${esc(placeholder)}"` : '';
+  const reqAttr = required ? 'required' : '';
+  const disAttr = disabled ? 'disabled' : '';
+  const autoAttr = autocomplete ? `autocomplete="${esc(autocomplete)}"` : '';
+  const minAttr = min !== '' ? `min="${min}"` : '';
+  const maxAttr = max !== '' ? `max="${max}"` : '';
+  const minlAttr = minlength !== '' ? `minlength="${minlength}"` : '';
+  const maxlAttr = maxlength !== '' ? `maxlength="${maxlength}"` : '';
+
+  return `
+    <div class="ui-form-item form-group ${className}">
+      ${label ? `<label class="ui-form-label form-label" ${id ? `for="${esc(id)}"` : ''}>${esc(label)}${required ? ' *' : ''}</label>` : ''}
+      <input type="${type}" class="ui-input field" ${idAttr} ${nameAttr} ${valAttr} ${phAttr} ${reqAttr} ${disAttr} ${autoAttr} ${minAttr} ${maxAttr} ${minlAttr} ${maxlAttr} ${attrs} />
+      ${description ? `<p class="ui-form-description">${esc(description)}</p>` : ''}
+      ${error ? `<p class="ui-form-message">${esc(error)}</p>` : ''}
+    </div>`;
+}
+
+function uiSelect({
+  id = '',
+  name = '',
+  value = '',
+  label = '',
+  options = [],
+  description = '',
+  className = '',
+  attrs = '',
+  disabled = false
+} = {}) {
+  const idAttr = id ? `id="${esc(id)}"` : '';
+  const nameAttr = name ? `name="${esc(name)}"` : '';
+  const disAttr = disabled ? 'disabled' : '';
+  const optsHtml = options.map(opt => {
+    const val = typeof opt === 'object' ? opt.value : opt;
+    const lbl = typeof opt === 'object' ? opt.label : opt;
+    const sel = String(val) === String(value) ? 'selected' : '';
+    return `<option value="${esc(val)}" ${sel}>${esc(lbl)}</option>`;
+  }).join('');
+
+  return `
+    <div class="ui-form-item form-group ${className}">
+      ${label ? `<label class="ui-form-label form-label" ${id ? `for="${esc(id)}"` : ''}>${esc(label)}</label>` : ''}
+      <select class="ui-select field" ${idAttr} ${nameAttr} ${disAttr} ${attrs}>
+        ${optsHtml}
+      </select>
+      ${description ? `<p class="ui-form-description">${esc(description)}</p>` : ''}
+    </div>`;
+}
+
+function uiDialog({
+  title = '',
+  description = '',
+  content = '',
+  footer = '',
+  wide = false,
+  sheet = false,
+  onClose = 'close-modal',
+  className = '',
+  id = ''
+} = {}) {
+  const wideClass = wide ? 'ui-dialog--wide modal-wide' : '';
+  const sheetClass = sheet ? 'ui-sheet-content modal-sheet' : '';
+  const idAttr = id ? `id="${esc(id)}"` : '';
+
+  return `
+    <div class="ui-dialog-backdrop modal-backdrop" data-action="backdrop-close">
+      <section ${idAttr} class="ui-dialog ui-dialog-content modal ${wideClass} ${sheetClass} ${className}" role="dialog" aria-modal="true">
+        <div class="ui-dialog-header modal-head">
+          <div>
+            ${title ? `<h3 class="ui-dialog-title">${title}</h3>` : ''}
+            ${description ? `<p class="ui-dialog-description">${description}</p>` : ''}
+          </div>
+          <button class="ui-dialog-close modal-close" data-action="${esc(onClose)}" aria-label="Fechar">
+            ${icon('x')}
+          </button>
+        </div>
+        <div class="ui-dialog-body" style="flex:1;overflow-y:auto">
+          ${content}
+        </div>
+        ${footer ? `<div class="ui-dialog-footer modal-actions">${footer}</div>` : ''}
+      </section>
+    </div>`;
 }
 
 function formatDate(value, opts = { day:'2-digit', month:'short' }) {
@@ -790,27 +1017,33 @@ function renderLogin(error = '', email = '') {
         </div>
       </div>
       <div class="story-copy">
-        <div class="eyebrow">DESIGN MODERNO · PERFORMANCE TOTAL</div>
+        <div class="eyebrow">${icon('sparkles')} DESIGN SHADCN/UI · PERFORMANCE TOTAL</div>
         <h1>Construa força.<br>Eleve o seu <em>padrão.</em></h1>
         <p>Um espaço refinado para transformar esforço em resultado. Organize seus treinos com demonstrações em GIF, acompanhe seu ritmo e evolua com consistência.</p>
         <div class="story-proof">
-          <div><span class="proof-number">1.100<span style="color:hsl(var(--primary))">+</span></span><span class="proof-label">EXERCÍCIOS COM GIF</span></div>
-          <div class="proof-divider"></div>
-          <div><span class="proof-number">125<span style="color:hsl(var(--primary))">%</span></span><span class="proof-label">ESCALA AMPLIADA</span></div>
-          <div class="proof-divider"></div>
-          <div><span class="proof-number">NUVEM</span><span class="proof-label">SUPABASE &amp; GOOGLE</span></div>
+          <div class="ui-badge ui-badge--outline" style="padding:0.75rem 1rem;border-radius:var(--radius-lg);flex-direction:column;align-items:flex-start;background:hsl(var(--card));box-shadow:var(--shadow-sm)">
+            <span class="proof-number">1.100<span style="color:hsl(var(--primary))">+</span></span>
+            <span class="proof-label">EXERCÍCIOS COM GIF</span>
+          </div>
+          <div class="ui-separator ui-separator--vertical" style="height:2.5rem"></div>
+          <div class="ui-badge ui-badge--outline" style="padding:0.75rem 1rem;border-radius:var(--radius-lg);flex-direction:column;align-items:flex-start;background:hsl(var(--card));box-shadow:var(--shadow-sm)">
+            <span class="proof-number">125<span style="color:hsl(var(--primary))">%</span></span>
+            <span class="proof-label">ESCALA AMPLIADA</span>
+          </div>
+          <div class="ui-separator ui-separator--vertical" style="height:2.5rem"></div>
+          <div class="ui-badge ui-badge--outline" style="padding:0.75rem 1rem;border-radius:var(--radius-lg);flex-direction:column;align-items:flex-start;background:hsl(var(--card));box-shadow:var(--shadow-sm)">
+            <span class="proof-number" style="font-size:1.1rem;letter-spacing:1px">NUVEM</span>
+            <span class="proof-label">SUPABASE &amp; GOOGLE</span>
+          </div>
         </div>
       </div>
       <div class="story-footer">
-        <span>© MOGGER GYM · PLATAFORMA FITNESS</span>
-        <!--<button class="text-link" data-action="open-supabase-modal" style="font-size:0.75rem;color:hsl(var(--muted-foreground))">
-          ${icon('settings')} Configurar Supabase
-        </button> -->
+        <span>© MOGGER GYM · SHADCN/UI FITNESS PLATFORM</span>
       </div>
     </section>
 
     <section class="login-side">
-      <div class="login-card">
+      <div class="login-card ui-card">
         <div class="brand-lockup mobile-brand">
           <div class="brand-mark">M</div>
           <div>
@@ -819,90 +1052,117 @@ function renderLogin(error = '', email = '') {
           </div>
         </div>
 
-        <div class="auth-tabs" role="tablist">
-          <button type="button" class="auth-tab ${isLogin ? 'active' : ''}" data-action="set-auth-tab" data-tab="login" role="tab" aria-selected="${isLogin}">
-            Entrar
-          </button>
-          <button type="button" class="auth-tab ${!isLogin ? 'active' : ''}" data-action="set-auth-tab" data-tab="register" role="tab" aria-selected="${!isLogin}">
-            Criar Conta
-          </button>
+        <!-- Tabs de autenticação shadcn/ui -->
+        <div class="ui-tabs" role="tablist">
+          <div class="ui-tabs-list auth-tabs" style="width:100%;margin-bottom:1.5rem">
+            <button type="button" class="ui-tabs-trigger auth-tab ${isLogin ? 'active' : ''}" data-state="${isLogin ? 'active' : 'inactive'}" data-action="set-auth-tab" data-tab="login" role="tab" aria-selected="${isLogin}" style="flex:1">
+              Entrar
+            </button>
+            <button type="button" class="ui-tabs-trigger auth-tab ${!isLogin ? 'active' : ''}" data-state="${!isLogin ? 'active' : 'inactive'}" data-action="set-auth-tab" data-tab="register" role="tab" aria-selected="${!isLogin}" style="flex:1">
+              Criar Conta
+            </button>
+          </div>
         </div>
 
-        <div class="login-step">
-          ${icon('shield')} ${isLogin ? 'ÁREA DE ACESSO' : 'NOVO CADASTRO'}
+        <div style="margin-bottom:0.75rem">
+          ${uiBadge({ text: isLogin ? 'ÁREA DE ACESSO' : 'NOVO CADASTRO', icon: 'shield', variant: 'secondary' })}
         </div>
-        <h2>${isLogin ? 'Entrar na plataforma' : 'Criar nova conta'}</h2>
-        <p class="login-subtitle">
+        <h2 style="font:800 1.65rem/1.2 'Manrope';margin:0.25rem 0 0.5rem">${isLogin ? 'Entrar na plataforma' : 'Criar nova conta'}</h2>
+        <p class="login-subtitle" style="color:hsl(var(--muted-foreground));font-size:0.875rem;margin:0 0 1.5rem">
           ${isLogin
             ? 'Acesse seus treinos personalizados e continue seu progresso diário.'
             : 'Cadastre-se gratuitamente para montar seus treinos e acompanhar sua evolução.'}
         </p>
 
         <!-- Botão Google OAuth Shadcn -->
-        <button type="button" class="btn-google" data-action="login-google">
+        <button type="button" class="ui-button ui-button--outline btn-outline btn-google" data-action="login-google" style="width:100%;padding:0.75rem;display:flex;align-items:center;justify-content:center;gap:0.75rem">
           ${GOOGLE_ICON_SVG}
           <span>${isLogin ? 'Continuar com o Google' : 'Cadastrar com o Google'}</span>
         </button>
 
-        <div class="auth-divider">${isLogin ? 'ou entre com e-mail' : 'ou crie com seus dados'}</div>
+        <div class="auth-divider" style="display:flex;align-items:center;gap:0.75rem;margin:1.4rem 0">
+          <span class="ui-separator" style="flex:1"></span>
+          <span style="font-size:0.72rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;letter-spacing:1px">${isLogin ? 'ou entre com e-mail' : 'ou crie com seus dados'}</span>
+          <span class="ui-separator" style="flex:1"></span>
+        </div>
 
-        <div class="form-error ${error ? 'show' : ''}" id="login-error">${esc(error)}</div>
+        ${uiAlert({
+          title: 'Erro de Autenticação',
+          description: esc(error),
+          variant: 'destructive',
+          id: 'login-error',
+          className: `form-error ${error ? 'show' : ''}`,
+          attrs: `style="${error ? 'display:block;margin-bottom:1.25rem' : 'display:none;margin-bottom:1.25rem'}"`
+        })}
 
         ${isLogin ? `
         <form id="login-form">
-          <div class="form-group">
-            <label class="form-label" for="login-email">E-mail</label>
-            <input class="field" id="login-email" name="email" type="email" autocomplete="username" placeholder="voce@email.com" required value="${esc(email)}" />
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="login-email">E-mail</label>
+            <input class="ui-input field" id="login-email" name="email" type="email" autocomplete="username" placeholder="voce@email.com" required value="${esc(email)}" />
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="login-password">Senha</label>
-            <div class="input-wrap">
-              <input class="field" id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required />
-              <button type="button" class="password-toggle" data-action="toggle-password">Mostrar</button>
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="login-password">Senha</label>
+            <div class="input-wrap" style="position:relative">
+              <input class="ui-input field" id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required />
+              <button type="button" class="ui-button ui-button--ghost ui-button--sm password-toggle" data-action="toggle-password" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%)">Mostrar</button>
             </div>
           </div>
 
-          <button class="login-submit" type="submit">
-            <span>Entrar com credenciais</span>
-            ${icon('arrow')}
-          </button>
+          ${uiButton({
+            text: 'Entrar com credenciais',
+            icon: 'arrow',
+            iconPosition: 'right',
+            variant: 'default',
+            type: 'submit',
+            className: 'login-submit',
+            attrs: 'style="width:100%;margin-top:0.5rem"'
+          })}
         </form>
         ` : `
         <form id="register-form">
-          <div class="form-group">
-            <label class="form-label" for="register-name">Nome completo</label>
-            <input class="field" id="register-name" name="name" type="text" autocomplete="name" placeholder="Ex: Lucas Silva" required />
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="register-name">Nome completo</label>
+            <input class="ui-input field" id="register-name" name="name" type="text" autocomplete="name" placeholder="Ex: Lucas Silva" required />
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="register-email">E-mail</label>
-            <input class="field" id="register-email" name="email" type="email" autocomplete="username" placeholder="voce@email.com" required value="${esc(email)}" />
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="register-email">E-mail</label>
+            <input class="ui-input field" id="register-email" name="email" type="email" autocomplete="username" placeholder="voce@email.com" required value="${esc(email)}" />
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="register-password">Senha (mínimo 6 caracteres)</label>
-            <div class="input-wrap">
-              <input class="field" id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Crie sua senha" required minlength="6" />
-              <button type="button" class="password-toggle" data-action="toggle-register-password">Mostrar</button>
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="register-password">Senha (mínimo 6 caracteres)</label>
+            <div class="input-wrap" style="position:relative">
+              <input class="ui-input field" id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Crie sua senha" required minlength="6" />
+              <button type="button" class="ui-button ui-button--ghost ui-button--sm password-toggle" data-action="toggle-register-password" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%)">Mostrar</button>
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="register-confirm">Confirmar senha</label>
-            <input class="field" id="register-confirm" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repita a senha" required minlength="6" />
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="register-confirm">Confirmar senha</label>
+            <input class="ui-input field" id="register-confirm" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repita a senha" required minlength="6" />
           </div>
 
-          <button class="login-submit" type="submit">
-            <span>Criar minha conta</span>
-            ${icon('arrow')}
-          </button>
+          ${uiButton({
+            text: 'Criar minha conta',
+            icon: 'arrow',
+            iconPosition: 'right',
+            variant: 'default',
+            type: 'submit',
+            className: 'login-submit',
+            attrs: 'style="width:100%;margin-top:0.5rem"'
+          })}
         </form>
         `}
 
-        <div class="login-footnote">
-          <span style="color:hsl(var(--primary))">${icon('shield')}</span>
-          <span>Autenticação segura via Google OAuth / Supabase ou credenciais criptografadas no servidor Mogger.</span>
+        <div style="margin-top:1.5rem">
+          ${uiAlert({
+            description: 'Autenticação segura via Google OAuth / Supabase ou credenciais criptografadas no servidor Mogger.',
+            variant: 'default',
+            icon: 'shield'
+          })}
         </div>
       </div>
     </section>
@@ -1083,6 +1343,16 @@ async function refreshData() {
         }));
       }
 
+      if (state.user.role === 'admin') {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.access_token) {
+          const total = await api('/api/admin/user-count', {
+            headers: { Authorization: `Bearer ${session.access_token}` }
+          });
+          state.userCount = total.count;
+        }
+      }
+
       // Calcular estatísticas
       calculateStats();
       return;
@@ -1192,7 +1462,7 @@ function renderApp() {
             <div class="brand-mark">M</div>
             <div>
               <div class="brand-name">MOGGER<span>GYM</span></div>
-              <div class="brand-caption">PLATAFORMA FITNESS</div>
+              <div class="brand-caption">TREINE COM PROPÓSITO</div>
             </div>
           </div>
         </div>
@@ -1210,21 +1480,27 @@ function renderApp() {
         </nav>
 
         <div class="sidebar-bottom">
-          <div class="sidebar-tip">
-            <div class="tip-icon">${icon('sparkles')}</div>
-            <strong>Consistência &gt; Intensidade</strong>
-            <p>Pequenos blocos diários de esforço constroem transformações duradouras.</p>
-          </div>
+          ${uiAlert({
+            title: 'Consistência > Intensidade',
+            description: 'Pequenos blocos diários de esforço constroem transformações duradouras.',
+            variant: 'primary',
+            icon: 'sparkles',
+            className: 'sidebar-tip'
+          })}
 
-          <div class="profile-mini">
-            <div class="avatar">${userAvatar}</div>
+          <div class="profile-mini ui-card" style="padding:0.75rem;border-radius:var(--radius-lg)">
+            <div class="ui-avatar avatar">${userAvatar}</div>
             <div class="profile-meta">
               <strong>${esc(state.user.name)}</strong>
               <span>${state.authProvider === 'supabase' ? 'Google / Supabase' : (state.user.role === 'admin' ? 'Administrador' : 'Membro Mogger')}</span>
             </div>
-            <button class="icon-button" title="Sair da conta" aria-label="Sair da conta" data-action="logout">
-              ${icon('logout')}
-            </button>
+            ${uiButton({
+              icon: 'logout',
+              variant: 'ghost',
+              size: 'icon-sm',
+              title: 'Sair da conta',
+              attrs: 'data-action="logout"'
+            })}
           </div>
         </div>
       </aside>
@@ -1232,30 +1508,37 @@ function renderApp() {
       <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
       <main class="main-area">
         <header class="topbar">
-          <div class="breadcrumb">
+          <div class="breadcrumb" style="display:flex;align-items:center;gap:0.5rem">
             <div class="mobile-brand-icon">M</div>
-            <span class="breadcrumb-prefix">Painel / </span>
-            <b class="breadcrumb-current">${esc(pageLabel(state.page))}</b>
+            <span class="breadcrumb-prefix" style="color:hsl(var(--muted-foreground));font-size:0.875rem">Painel /</span>
+            <b class="breadcrumb-current" style="font-size:0.95rem;font-weight:700">${esc(pageLabel(state.page))}</b>
           </div>
 
           <div class="topbar-actions">
-            <!-- Seletor de Escala (Desktop) -->
-            <div class="scale-selector" title="Resolução e escala de leitura">
-              <button class="scale-btn ${state.resolutionScale==='100'?'active':''}" data-action="set-scale" data-scale="100">100%</button>
-              <button class="scale-btn ${state.resolutionScale==='125'?'active':''}" data-action="set-scale" data-scale="125">125%</button>
-              <button class="scale-btn ${state.resolutionScale==='150'?'active':''}" data-action="set-scale" data-scale="150">150%</button>
+            <!-- Seletor de Escala Shadcn Tabs (Desktop) -->
+            <div class="ui-tabs-list scale-selector" role="tablist" title="Resolução e escala de leitura">
+              <button class="ui-tabs-trigger scale-btn ${state.resolutionScale==='100'?'active':''}" data-state="${state.resolutionScale==='100'?'active':'inactive'}" data-action="set-scale" data-scale="100">100%</button>
+              <button class="ui-tabs-trigger scale-btn ${state.resolutionScale==='125'?'active':''}" data-state="${state.resolutionScale==='125'?'active':'inactive'}" data-action="set-scale" data-scale="125">125%</button>
+              <button class="ui-tabs-trigger scale-btn ${state.resolutionScale==='150'?'active':''}" data-state="${state.resolutionScale==='150'?'active':'inactive'}" data-action="set-scale" data-scale="150">150%</button>
             </div>
 
-            <div class="date-chip">
-              ${icon('calendar')}
-              <span>${esc(localToday())}</span>
-            </div>
+            ${uiBadge({
+              text: localToday(),
+              icon: 'calendar',
+              variant: 'outline',
+              className: 'date-chip'
+            })}
 
-            <button class="icon-top" data-action="go-library" title="Buscar exercícios" aria-label="Buscar exercícios">
-              ${icon('search')}
-            </button>
+            ${uiButton({
+              icon: 'search',
+              variant: 'ghost',
+              size: 'icon',
+              title: 'Buscar exercícios',
+              className: 'icon-top',
+              attrs: 'data-action="go-library"'
+            })}
 
-            <button class="avatar avatar-button" data-action="open-user-profile" title="Minha conta (${esc(state.user.name)})" aria-label="Abrir menu de perfil">
+            <button class="ui-avatar avatar avatar-button" data-action="open-user-profile" title="Minha conta (${esc(state.user.name)})" aria-label="Abrir menu de perfil">
               ${userAvatar}
             </button>
           </div>
@@ -1273,11 +1556,11 @@ function navItem(page, label, iconKey, pill = '', shortLabel = '') {
   const active = state.page === page;
   const displayShort = shortLabel || label;
   return `
-    <button class="nav-item ${active ? 'active' : ''}" data-page="${page}" title="${label}">
+    <button class="ui-button ui-button--ghost nav-item ${active ? 'active' : ''}" data-page="${page}" title="${label}">
       <span class="nav-icon">${icon(iconKey)}</span>
       <span class="nav-label desktop-only">${label}</span>
       <span class="nav-label mobile-only">${displayShort}</span>
-      ${pill ? `<span class="nav-pill">${pill}</span>` : ''}
+      ${pill ? `<span class="ui-badge ui-badge--secondary nav-pill">${pill}</span>` : ''}
     </button>`;
 }
 
@@ -1308,14 +1591,14 @@ function renderPage() {
    ============================================================================== */
 function statCard(label, value, detail, iconName, colorVariant = 'primary', emphasis = '') {
   return `
-    <div class="stat-card">
+    <div class="ui-card stat-card">
       <div class="stat-top">
-        <span>${label}</span>
+        <span>${esc(label)}</span>
         <div class="icon-badge ${colorVariant}">${icon(iconName)}</div>
       </div>
       <div class="stat-number">${value}</div>
       <div class="stat-foot">
-        ${emphasis ? `<span class="positive">${emphasis}</span> · ` : ''}${detail}
+        ${emphasis ? `<span class="ui-badge ui-badge--emerald positive" style="padding:2px 8px;font-size:0.7rem">${esc(emphasis)}</span> · ` : ''}${detail}
       </div>
     </div>`;
 }
@@ -1337,29 +1620,41 @@ function renderDashboard() {
         <p>Acompanhe sua disciplina diária e eleve sua performance com movimentos precisos.</p>
       </div>
       <div class="heading-actions">
-        <button class="btn btn-outline" data-page="library">
-          ${icon('search')} Explorar exercícios
-        </button>
-        <button class="btn btn-primary" data-action="new-workout">
-          ${icon('plus')} Montar treino
-        </button>
+        ${uiButton({
+          text: 'Explorar exercícios',
+          icon: 'search',
+          variant: 'outline',
+          attrs: 'data-page="library"'
+        })}
+        ${uiButton({
+          text: 'Montar treino',
+          icon: 'plus',
+          variant: 'default',
+          attrs: 'data-action="new-workout"'
+        })}
       </div>
     </div>
 
-    <!-- Banner Hero Fitness -->
-    <section class="hero-banner">
+    <!-- Banner Hero Fitness Shadcn -->
+    <section class="hero-banner ui-card">
       <div class="hero-copy">
-        <div class="eyebrow">${icon('flame')} PROPÓSITO &amp; DISCIPLINA</div>
+        <div class="eyebrow" style="margin-bottom:0.4rem">
+          ${uiBadge({ text: 'PROPÓSITO & DISCIPLINA', icon: 'flame', variant: 'primary' })}
+        </div>
         <h2>Não dependa de sorte.<br><em>Construa consistência.</em></h2>
         <p>Monte suas séries, visualize a mecânica nos GIFs e registre cada conquista com a precisão que seu corpo merece.</p>
-        <button class="btn btn-primary" data-page="workouts">
-          <span>Acessar rotinas de treino</span>
-          ${icon('arrow')}
-        </button>
+        ${uiButton({
+          text: 'Acessar rotinas de treino',
+          icon: 'arrow',
+          iconPosition: 'right',
+          variant: 'default',
+          size: 'lg',
+          attrs: 'data-page="workouts"'
+        })}
       </div>
       <div class="hero-visual">
         <div class="hero-glyph">M</div>
-        <div class="hero-number">MOGGER · PERFORMANCE V2</div>
+        <div class="hero-number">MOGGER · SHADCN FITNESS</div>
       </div>
     </section>
 
@@ -1373,13 +1668,13 @@ function renderDashboard() {
 
     <!-- Conteúdo Principal do Dashboard -->
     <div class="content-grid">
-      <section class="panel">
-        <div class="panel-heading">
+      <section class="ui-card panel">
+        <div class="ui-card-header panel-heading">
           <div>
-            <h3>Seus treinos em andamento</h3>
-            <p>${esc(planned)}</p>
+            <h3 class="ui-card-title">Seus treinos em andamento</h3>
+            <p class="ui-card-description">${esc(planned)}</p>
           </div>
-          <button class="text-link" data-page="workouts">
+          <button class="ui-button ui-button--link btn-link text-link" data-page="workouts">
             <span>Ver todos</span> ${icon('arrow')}
           </button>
         </div>
@@ -1393,25 +1688,29 @@ function renderDashboard() {
             <div class="empty-orb">${icon('dumbbell')}</div>
             <h4>Crie seu primeiro treino</h4>
             <p>Personalize exercícios, repetições, descanso e foco para o seu objetivo.</p>
-            <button class="btn btn-primary btn-small" data-action="new-workout">
-              ${icon('plus')} Montar rotina
-            </button>
+            ${uiButton({
+              text: 'Montar rotina',
+              icon: 'plus',
+              variant: 'default',
+              size: 'sm',
+              attrs: 'data-action="new-workout"'
+            })}
           </div>
         `}
       </section>
 
-      <section class="panel">
-        <div class="panel-heading">
+      <section class="ui-card panel">
+        <div class="ui-card-header panel-heading">
           <div>
-            <h3>Frequência da semana</h3>
-            <p>Treinos finalizados nos últimos 7 dias</p>
+            <h3 class="ui-card-title">Frequência da semana</h3>
+            <p class="ui-card-description">Treinos finalizados nos últimos 7 dias</p>
           </div>
           <div class="icon-badge amber">${icon('calendar')}</div>
         </div>
         ${renderWeekBars()}
-        <div class="weekly-summary">
-          <span>Meta recomendada</span>
-          <strong>${stats.weekCount || 0} / 4 sessões</strong>
+        <div class="weekly-summary" style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid hsl(var(--border));margin-top:1.2rem;padding-top:1rem">
+          <span style="color:hsl(var(--muted-foreground));font-size:0.875rem">Meta recomendada</span>
+          ${uiBadge({ text: `${stats.weekCount || 0} / 4 sessões`, variant: 'secondary' })}
         </div>
       </section>
     </div>
@@ -1419,7 +1718,7 @@ function renderDashboard() {
     <!-- Módulos de Acesso Rápido com Design Shadcn -->
     <div class="section-title">MÓDULOS DE ACESSO RÁPIDO</div>
     <div class="content-grid" style="margin-bottom:1.5rem">
-      <button class="panel" data-page="library" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:1.1rem">
+      <button class="ui-card panel" data-page="library" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:1.1rem;padding:1.25rem">
         <div class="icon-badge primary" style="width:3rem;height:3rem">
           ${icon('book-open')}
         </div>
@@ -1430,7 +1729,7 @@ function renderDashboard() {
         <span style="margin-left:auto;color:hsl(var(--primary))">${icon('arrow')}</span>
       </button>
 
-      <button class="panel" data-page="history" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:1.1rem">
+      <button class="ui-card panel" data-page="history" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:1.1rem;padding:1.25rem">
         <div class="icon-badge emerald" style="width:3rem;height:3rem">
           ${icon('history')}
         </div>
@@ -1485,7 +1784,7 @@ function workoutRow(workout, index = 0) {
   const iconChoice = iconsList[index % iconsList.length];
   const count = workout.exercises?.length || 0;
   return `
-    <div class="workout-row">
+    <div class="workout-row ui-card" style="padding:0.9rem 1rem;background:hsl(var(--popover))">
       <div class="icon-badge primary" style="width:2.6rem;height:2.6rem">
         ${icon(iconChoice)}
       </div>
@@ -1493,10 +1792,16 @@ function workoutRow(workout, index = 0) {
         <strong>${esc(workout.title)}</strong>
         <span>${esc(workout.focus || 'Hipertrofia')} · ${count} exercício${count===1?'':'s'}</span>
       </div>
-      <span class="workout-tag">${workout.days || 4}x / sem</span>
-      <button class="icon-button" data-action="view-workout" data-id="${esc(workout.id)}" aria-label="Visualizar treino" title="Visualizar treino">
-        ${icon('arrow')}
-      </button>
+      <span class="ui-badge ui-badge--secondary workout-tag">${workout.days || 4}x / sem</span>
+      ${uiButton({
+        icon: 'arrow',
+        variant: 'ghost',
+        size: 'icon-sm',
+        title: 'Visualizar treino',
+        ariaLabel: 'Visualizar treino',
+        className: 'icon-button',
+        attrs: `data-action="view-workout" data-id="${esc(workout.id)}"`
+      })}
     </div>`;
 }
 
@@ -1511,22 +1816,25 @@ function renderWorkouts() {
         <p>Suas rotinas personalizadas para máxima hipertrofia e performance.</p>
       </div>
       <div class="heading-actions">
-        <button class="btn btn-primary" data-action="new-workout">
-          ${icon('plus')} Criar novo treino
-        </button>
+        ${uiButton({
+          text: 'Criar novo treino',
+          icon: 'plus',
+          variant: 'default',
+          attrs: 'data-action="new-workout"'
+        })}
       </div>
     </div>
 
     <div class="metric-strip">
-      <div class="metric-box">
+      <div class="ui-card metric-box">
         <span>Treinos ativos</span>
         <strong>${state.workouts.length}</strong>
       </div>
-      <div class="metric-box">
+      <div class="ui-card metric-box">
         <span>Exercícios montados</span>
         <strong>${state.workouts.reduce((n, w) => n + (w.exercises?.length || 0), 0)}</strong>
       </div>
-      <div class="metric-box">
+      <div class="ui-card metric-box">
         <span>Sessões registradas</span>
         <strong>${state.stats.completedCount || 0}</strong>
       </div>
@@ -1536,21 +1844,26 @@ function renderWorkouts() {
       <div class="section-title">SUAS ROTINAS CONFIGURADAS</div>
       <div class="content-grid">
         ${state.workouts.map(w => `
-          <section class="panel">
-            <div class="panel-heading">
+          <section class="ui-card panel">
+            <div class="ui-card-header panel-heading">
               <div>
-                <span class="meta-chip">${esc(w.focus || 'Personalizado')}</span>
+                ${uiBadge({ text: w.focus || 'Personalizado', variant: 'primary' })}
                 <h3 style="margin-top:0.6rem;font-size:1.25rem">${esc(w.title)}</h3>
-                <p>${w.exercises?.length || 0} exercícios · ${w.days || 4} dias por semana</p>
+                <p class="ui-card-description">${w.exercises?.length || 0} exercícios · ${w.days || 4} dias por semana</p>
               </div>
-              <button class="icon-button" data-action="edit-workout" data-id="${esc(w.id)}" aria-label="Editar treino" title="Editar">
-                ${icon('edit')}
-              </button>
+              ${uiButton({
+                icon: 'edit',
+                variant: 'ghost',
+                size: 'icon-sm',
+                title: 'Editar treino',
+                ariaLabel: 'Editar treino',
+                attrs: `data-action="edit-workout" data-id="${esc(w.id)}"`
+              })}
             </div>
 
             <div class="workout-list">
               ${(w.exercises || []).slice(0, 3).map(ex => `
-                <div class="workout-row" style="background:hsl(var(--card));padding:0.75rem 0.85rem">
+                <div class="workout-row ui-card" style="padding:0.75rem 0.85rem;background:hsl(var(--card))">
                   <div class="icon-badge primary" style="width:2.2rem;height:2.2rem">
                     ${icon('dumbbell')}
                   </div>
@@ -1568,34 +1881,56 @@ function renderWorkouts() {
             </div>
 
             <div style="display:flex;gap:0.6rem;margin-top:1.2rem;flex-wrap:wrap">
-              <button class="btn btn-primary" style="flex:1" data-action="view-workout" data-id="${esc(w.id)}">
-                ${icon('activity')} Visualizar
-              </button>
-              <button class="btn btn-outline" style="flex:1" data-action="edit-workout" data-id="${esc(w.id)}">
-                ${icon('edit')} Editar
-              </button>
-              <button class="btn btn-outline" style="flex:1" data-action="complete-workout" data-id="${esc(w.id)}">
-                ${icon('check')} Concluir
-              </button>
-              <button class="btn btn-ghost btn-small" data-action="duplicate-workout" data-id="${esc(w.id)}" title="Duplicar treino">
-                ${icon('layers')} Duplicar
-              </button>
-              <button class="btn btn-danger btn-small" data-action="delete-workout" data-id="${esc(w.id)}" title="Excluir">
-                ${icon('trash')}
-              </button>
+              ${uiButton({
+                text: 'Visualizar',
+                icon: 'activity',
+                variant: 'default',
+                attrs: `data-action="view-workout" data-id="${esc(w.id)}" style="flex:1"`
+              })}
+              ${uiButton({
+                text: 'Editar',
+                icon: 'edit',
+                variant: 'outline',
+                attrs: `data-action="edit-workout" data-id="${esc(w.id)}" style="flex:1"`
+              })}
+              ${uiButton({
+                text: 'Concluir',
+                icon: 'check',
+                variant: 'outline',
+                attrs: `data-action="complete-workout" data-id="${esc(w.id)}" style="flex:1"`
+              })}
+              ${uiButton({
+                text: 'Duplicar',
+                icon: 'layers',
+                variant: 'ghost',
+                size: 'sm',
+                title: 'Duplicar treino',
+                attrs: `data-action="duplicate-workout" data-id="${esc(w.id)}"`
+              })}
+              ${uiButton({
+                icon: 'trash',
+                variant: 'destructive',
+                size: 'icon-sm',
+                title: 'Excluir',
+                ariaLabel: 'Excluir',
+                attrs: `data-action="delete-workout" data-id="${esc(w.id)}"`
+              })}
             </div>
           </section>
         `).join('')}
       </div>
     ` : `
-      <div class="panel">
+      <div class="ui-card panel">
         <div class="empty-state">
           <div class="empty-orb">${icon('dumbbell')}</div>
           <h4>Nenhum treino montado ainda</h4>
           <p>Monte seu primeiro treino agora escolhendo movimentos da biblioteca e definindo suas repetições.</p>
-          <button class="btn btn-primary" data-action="new-workout">
-            ${icon('plus')} Montar meu primeiro treino
-          </button>
+          ${uiButton({
+            text: 'Montar meu primeiro treino',
+            icon: 'plus',
+            variant: 'default',
+            attrs: 'data-action="new-workout"'
+          })}
         </div>
       </div>
     `}
@@ -1614,7 +1949,7 @@ function exerciseCard(ex, showAdd = true) {
   const src = gifUrl(ex);
 
   return `
-    <article class="exercise-card">
+    <article class="exercise-card ui-card">
       <div class="exercise-media">
         ${src ? `
           <img loading="lazy" src="${esc(src)}" alt="Demonstração em GIF de ${esc(translateExercise(ex.name))}"
@@ -1624,26 +1959,33 @@ function exerciseCard(ex, showAdd = true) {
           ${icon('activity')}
           <small>GIF indisponível</small>
         </div>
-        <span class="exercise-badge">${esc(target)}</span>
+        ${uiBadge({ text: target, variant: 'primary', className: 'exercise-badge' })}
       </div>
 
       <div class="exercise-body">
         <h3 class="exercise-title">${esc(translateExercise(ex.name))}</h3>
         <div class="exercise-meta">
-          <span class="meta-chip">${esc(equipment)}</span>
+          ${uiBadge({ text: equipment, variant: 'secondary', className: 'meta-chip' })}
         </div>
 
         <div class="exercise-card-foot">
-          <small>${ex.instructions?.length ? `${ex.instructions.length} passos de técnica` : 'Movimento com GIF'}</small>
+          <small style="color:hsl(var(--muted-foreground));font-size:0.8rem">${ex.instructions?.length ? `${ex.instructions.length} passos de técnica` : 'Movimento com GIF'}</small>
           <div style="display:flex;align-items:center;gap:0.45rem">
-            <button class="btn btn-outline btn-small" data-action="exercise-details" data-id="${esc(ex.id)}">
-              Detalhes
-            </button>
-            ${showAdd ? `
-              <button class="add-exercise-btn" data-action="add-exercise" data-id="${esc(ex.id)}" title="Adicionar ao treino">
-                ${icon('plus')}
-              </button>
-            ` : ''}
+            ${uiButton({
+              text: 'Detalhes',
+              variant: 'outline',
+              size: 'sm',
+              attrs: `data-action="exercise-details" data-id="${esc(ex.id)}"`
+            })}
+            ${showAdd ? uiButton({
+              icon: 'plus',
+              variant: 'default',
+              size: 'icon-sm',
+              title: 'Adicionar ao treino',
+              ariaLabel: 'Adicionar ao treino',
+              className: 'add-exercise-btn',
+              attrs: `data-action="add-exercise" data-id="${esc(ex.id)}"`
+            }) : ''}
           </div>
         </div>
       </div>
@@ -1668,28 +2010,36 @@ function renderLibrary() {
         <p>Explore mais de 1.100 movimentos com demonstrações em GIF animado.</p>
       </div>
       <div class="heading-actions">
-        <button class="btn btn-outline" data-page="workouts">
-          Meus treinos ${icon('arrow')}
-        </button>
+        ${uiButton({
+          text: 'Meus treinos',
+          icon: 'arrow',
+          iconPosition: 'right',
+          variant: 'outline',
+          attrs: 'data-page="workouts"'
+        })}
       </div>
     </div>
 
     ${state.exerciseError ? `
-      <div class="panel" style="margin-bottom:1.2rem;color:#fcd34d;background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3)">
-        Não foi possível carregar o repositório remoto completo no momento. Exibindo movimentos essenciais locais.
+      <div style="margin-bottom:1.2rem">
+        ${uiAlert({
+          title: 'Aviso da Biblioteca',
+          description: 'Não foi possível carregar o repositório remoto completo no momento. Exibindo movimentos essenciais locais.',
+          variant: 'warning'
+        })}
       </div>
     ` : ''}
 
     <div class="filter-bar">
       <div class="search-box">
         <span class="search-glass">${icon('search')}</span>
-        <input class="field" id="exercise-search" placeholder="Buscar por exercício, músculo ou equipamento…" value="${esc(state.exerciseSearch)}" autocomplete="off" />
+        <input class="ui-input field" id="exercise-search" placeholder="Buscar por exercício, músculo ou equipamento…" value="${esc(state.exerciseSearch)}" autocomplete="off" />
       </div>
-      <select class="filter-select" id="exercise-muscle">
+      <select class="ui-select filter-select" id="exercise-muscle">
         <option value="all">Todos os grupos musculares</option>
         ${availableBodyParts()}
       </select>
-      <select class="filter-select" id="exercise-equipment">
+      <select class="ui-select filter-select" id="exercise-equipment">
         <option value="all">Todos os equipamentos</option>
         ${availableEquipment()}
       </select>
@@ -1739,12 +2089,18 @@ function renderExerciseGrid() {
   const exercises = filteredExercises();
   if (!exercises.length) {
     return `
-      <div class="panel">
+      <div class="panel ui-card" style="padding:2.5rem 1rem">
         <div class="empty-state">
           <div class="empty-orb">${icon('search')}</div>
           <h4>Nenhum exercício encontrado</h4>
-          <p>Tente refinar os filtros de músculos ou equipamento.</p>
-          <button class="btn btn-outline btn-small" data-action="clear-exercise-filters">Limpar filtros</button>
+          <p style="color:hsl(var(--muted-foreground));margin-bottom:1.2rem">Tente refinar os filtros de músculos ou equipamento.</p>
+          ${uiButton({
+            text: 'Limpar filtros',
+            icon: 'x',
+            variant: 'outline',
+            size: 'sm',
+            attrs: 'data-action="clear-exercise-filters"'
+          })}
         </div>
       </div>`;
   }
@@ -1754,10 +2110,14 @@ function renderExerciseGrid() {
       ${visible.map(ex => exerciseCard(ex, true)).join('')}
     </div>
     ${exercises.length > visible.length ? `
-      <div class="load-more-wrap">
-        <button class="btn btn-outline" data-action="load-more">
-          Mostrar mais exercícios (${(exercises.length - visible.length).toLocaleString('pt-BR')} restantes)
-        </button>
+      <div class="load-more-wrap" style="display:flex;justify-content:center;margin-top:2rem">
+        ${uiButton({
+          text: `Mostrar mais exercícios (${(exercises.length - visible.length).toLocaleString('pt-BR')} restantes)`,
+          icon: 'plus',
+          variant: 'outline',
+          size: 'lg',
+          attrs: 'data-action="load-more"'
+        })}
       </div>
     ` : `
       <div style="text-align:center;color:hsl(var(--muted-foreground));font-size:0.85rem;padding:1.5rem 0 0.5rem">
@@ -1787,71 +2147,84 @@ function renderBuilder() {
         <p>Personalize exercícios, séries, repetições e intervalos de descanso.</p>
       </div>
       <div class="heading-actions">
-        <button class="btn btn-outline" data-page="workouts">
-          ← Voltar aos treinos
-        </button>
+        ${uiButton({
+          text: 'Voltar aos treinos',
+          variant: 'outline',
+          attrs: 'data-page="workouts"'
+        })}
       </div>
     </div>
 
     <div class="builder-layout">
-      <section class="panel builder-panel">
-        <div class="panel-heading">
+      <section class="ui-card panel builder-panel">
+        <div class="ui-card-header panel-heading">
           <div>
-            <h3>Configurações da rotina</h3>
-            <p>Defina objetivo e divisão semanal</p>
+            <h3 class="ui-card-title">Configurações da rotina</h3>
+            <p class="ui-card-description">Defina objetivo e divisão semanal</p>
           </div>
           <div class="icon-badge primary">${icon('edit')}</div>
         </div>
 
         <div class="builder-fields">
-          <div class="form-group">
-            <label class="form-label" for="draft-title">Nome do treino *</label>
-            <input class="field" id="draft-title" value="${esc(d.title)}" placeholder="Ex.: Treino A — Peitoral e Tríceps" maxlength="80" required />
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="draft-title">Nome do treino *</label>
+            <input class="ui-input field" id="draft-title" value="${esc(d.title)}" placeholder="Ex.: Treino A — Peitoral e Tríceps" maxlength="80" required />
           </div>
-          <div class="form-group">
-            <label class="form-label" for="draft-focus">Objetivo</label>
-            <select class="field" id="draft-focus">
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="draft-focus">Objetivo</label>
+            <select class="ui-select field" id="draft-focus">
               ${['Hipertrofia','Força','Resistência','Condicionamento','Mobilidade','Geral'].map(v => `<option ${d.focus===v?'selected':''}>${v}</option>`).join('')}
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="draft-days">Frequência semanal</label>
-            <select class="field" id="draft-days">
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="draft-days">Frequência semanal</label>
+            <select class="ui-select field" id="draft-days">
               ${[1,2,3,4,5,6,7].map(n => `<option value="${n}" ${Number(d.days)===n?'selected':''}>${n} dia${n>1?'s':''} por semana</option>`).join('')}
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="draft-notes">Anotações estratégicas</label>
-            <input class="field" id="draft-notes" value="${esc(d.notes || '')}" placeholder="Ex.: foco na fase excêntrica lenta" maxlength="240" />
+          <div class="ui-form-item form-group">
+            <label class="ui-form-label form-label" for="draft-notes">Anotações estratégicas</label>
+            <input class="ui-input field" id="draft-notes" value="${esc(d.notes || '')}" placeholder="Ex.: foco na fase excêntrica lenta" maxlength="240" />
           </div>
         </div>
 
-        <div class="panel-heading" style="margin-top:1.5rem">
+        <div class="ui-card-header panel-heading" style="margin-top:1.5rem">
           <div>
-            <h3>Exercícios selecionados</h3>
-            <p>Ajuste séries, reps e descansos de cada movimento</p>
+            <h3 class="ui-card-title">Exercícios selecionados</h3>
+            <p class="ui-card-description">Ajuste séries, reps e descansos de cada movimento</p>
           </div>
-          <button class="btn btn-outline btn-small" data-action="open-exercise-picker">
-            ${icon('plus')} Adicionar exercício
-          </button>
+          ${uiButton({
+            text: 'Adicionar exercício',
+            icon: 'plus',
+            variant: 'outline',
+            size: 'sm',
+            attrs: 'data-action="open-exercise-picker"'
+          })}
         </div>
 
         <div id="builder-exercises">${renderBuilderExercises()}</div>
 
         <div style="display:flex;justify-content:flex-end;gap:0.65rem;margin-top:1.6rem">
-          <button class="btn btn-outline" data-page="workouts">Cancelar</button>
-          <button class="btn btn-primary" data-action="save-workout">
-            ${icon('check')} ${state.editingWorkoutId ? 'Salvar alterações' : 'Salvar treino'}
-          </button>
+          ${uiButton({
+            text: 'Cancelar',
+            variant: 'outline',
+            attrs: 'data-page="workouts"'
+          })}
+          ${uiButton({
+            text: state.editingWorkoutId ? 'Salvar alterações' : 'Salvar treino',
+            icon: 'check',
+            variant: 'default',
+            attrs: 'data-action="save-workout"'
+          })}
         </div>
       </section>
 
-      <!-- Sidebar do Resumo -->
-      <aside class="panel builder-sidebar">
-        <div class="panel-heading">
+      <!-- Sidebar do Resumo Shadcn -->
+      <aside class="ui-card panel builder-sidebar">
+        <div class="ui-card-header panel-heading">
           <div>
-            <h3>Resumo da rotina</h3>
-            <p>Métricas estimadas</p>
+            <h3 class="ui-card-title">Resumo da rotina</h3>
+            <p class="ui-card-description">Métricas estimadas</p>
           </div>
         </div>
 
@@ -1872,18 +2245,28 @@ function renderBuilder() {
           <strong id="summary-focus">${esc(d.focus || 'Hipertrofia')}</strong>
         </div>
 
-        <div class="summary-callout">
-          ${icon('sparkles')} <b>Mecânica e Técnica:</b><br>
-          Use os GIFs como guia de alinhamento e busque sobrecarga progressiva com controle.
+        <div style="margin: 1.25rem 0">
+          ${uiAlert({
+            title: 'Mecânica e Técnica',
+            description: 'Use os GIFs como guia de alinhamento e busque sobrecarga progressiva com controle.',
+            variant: 'primary',
+            icon: 'sparkles'
+          })}
         </div>
 
         <div class="builder-sticky-actions">
-          <button class="btn btn-primary" data-action="save-workout">
-            ${icon('check')} Salvar treino
-          </button>
-          <button class="btn btn-outline" data-action="open-exercise-picker">
-            ${icon('plus')} Adicionar da biblioteca
-          </button>
+          ${uiButton({
+            text: 'Salvar treino',
+            icon: 'check',
+            variant: 'default',
+            attrs: 'data-action="save-workout" style="width:100%"'
+          })}
+          ${uiButton({
+            text: 'Adicionar da biblioteca',
+            icon: 'plus',
+            variant: 'outline',
+            attrs: 'data-action="open-exercise-picker" style="width:100%"'
+          })}
         </div>
       </aside>
     </div>`;
@@ -1893,18 +2276,23 @@ function renderBuilderExercises() {
   const d = state.draft || newDraft();
   if (!d.exercises.length) {
     return `
-      <div class="empty-builder">
+      <div class="empty-builder ui-card" style="border:2px dashed hsl(var(--border));background:transparent">
         <div style="font-size:2.2rem;margin-bottom:0.6rem;color:hsl(var(--primary))">${icon('plus')}</div>
         <b>Sua rotina ainda não tem exercícios.</b><br>
-        Adicione movimentos da biblioteca e personalize séries e repetições.<br>
-        <button class="btn btn-primary btn-small" style="margin-top:1rem" data-action="open-exercise-picker">
-          ${icon('search')} Buscar na biblioteca
-        </button>
+        <span style="color:hsl(var(--muted-foreground));font-size:0.875rem">Adicione movimentos da biblioteca e personalize séries e repetições.</span><br>
+        ${uiButton({
+          text: 'Buscar na biblioteca',
+          icon: 'search',
+          variant: 'default',
+          size: 'sm',
+          className: 'mt-3',
+          attrs: 'style="margin-top:1rem" data-action="open-exercise-picker"'
+        })}
       </div>`;
   }
 
   return d.exercises.map((ex, i) => `
-    <div class="builder-exercise" data-exercise-row="${i}">
+    <div class="builder-exercise ui-card" data-exercise-row="${i}" style="padding:0.95rem;background:hsl(var(--popover))">
       <div class="builder-exercise-main">
         <div class="builder-thumb">
           ${gifUrl(ex) ? `
@@ -1913,24 +2301,32 @@ function renderBuilderExercises() {
         </div>
         <div class="builder-ex-info">
           <strong>${esc(translateExercise(ex.name))}</strong>
-          <span>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))}</span>
+          <div>
+            ${uiBadge({ text: labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'), variant: 'secondary' })}
+          </div>
         </div>
-        <button class="remove-exercise" data-action="remove-draft-exercise" data-index="${i}" title="Remover exercício" aria-label="Remover">
-          ${icon('trash')}
-        </button>
+        ${uiButton({
+          icon: 'trash',
+          variant: 'destructive',
+          size: 'icon-sm',
+          title: 'Remover exercício',
+          ariaLabel: 'Remover',
+          className: 'remove-exercise',
+          attrs: `data-action="remove-draft-exercise" data-index="${i}"`
+        })}
       </div>
       <div class="builder-exercise-params">
         <div class="param-box">
           <label class="compact-label">Séries</label>
-          <input class="compact-field" type="number" min="1" max="20" inputmode="numeric" value="${Number(ex.sets) || 3}" data-draft-index="${i}" data-field="sets" />
+          <input class="ui-input compact-field" type="number" min="1" max="20" inputmode="numeric" value="${Number(ex.sets) || 3}" data-draft-index="${i}" data-field="sets" />
         </div>
         <div class="param-box">
           <label class="compact-label">Reps</label>
-          <input class="compact-field" value="${esc(ex.reps || '8–12')}" maxlength="20" data-draft-index="${i}" data-field="reps" />
+          <input class="ui-input compact-field" value="${esc(ex.reps || '8–12')}" maxlength="20" data-draft-index="${i}" data-field="reps" />
         </div>
         <div class="param-box rest-control">
           <label class="compact-label">Descanso(s)</label>
-          <input class="compact-field" type="number" min="0" max="600" inputmode="numeric" value="${Number(ex.rest) || 90}" data-draft-index="${i}" data-field="rest" />
+          <input class="ui-input compact-field" type="number" min="0" max="600" inputmode="numeric" value="${Number(ex.rest) || 90}" data-draft-index="${i}" data-field="rest" />
         </div>
       </div>
     </div>
@@ -1948,32 +2344,35 @@ function renderHistory() {
         <p>Acompanhe seu registro de dedicação e consistência com precisão.</p>
       </div>
       <div class="heading-actions">
-        <button class="btn btn-primary" data-page="workouts">
-          Meus treinos ${icon('arrow')}
-        </button>
+        ${uiButton({
+          text: 'Meus treinos',
+          icon: 'arrow',
+          variant: 'default',
+          attrs: 'data-page="workouts"'
+        })}
       </div>
     </div>
 
     <div class="metric-strip">
-      <div class="metric-box">
-        <span>Total de sessões</span>
-        <strong>${state.stats.completedCount || 0}</strong>
+      <div class="metric-box ui-card">
+        <span style="color:hsl(var(--muted-foreground));font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Total de sessões</span>
+        <strong style="color:hsl(var(--foreground))">${state.stats.completedCount || 0}</strong>
       </div>
-      <div class="metric-box">
-        <span>Tempo total de treino</span>
-        <strong>${Math.floor((state.stats.minutes || 0) / 60)}h ${(state.stats.minutes || 0) % 60}m</strong>
+      <div class="metric-box ui-card">
+        <span style="color:hsl(var(--muted-foreground));font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Tempo total de treino</span>
+        <strong style="color:hsl(var(--foreground))">${Math.floor((state.stats.minutes || 0) / 60)}h ${(state.stats.minutes || 0) % 60}m</strong>
       </div>
-      <div class="metric-box">
-        <span>Últimos 30 dias</span>
-        <strong>${state.stats.recentCount || 0}</strong>
+      <div class="metric-box ui-card">
+        <span style="color:hsl(var(--muted-foreground));font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Últimos 30 dias</span>
+        <strong style="color:hsl(var(--foreground))">${state.stats.recentCount || 0}</strong>
       </div>
     </div>
 
-    <section class="panel">
+    <section class="panel ui-card">
       <div class="panel-heading">
         <div>
-          <h3>Sessões concluídas</h3>
-          <p>Registros de esforço salvos</p>
+          <h3 class="ui-card-title">Sessões concluídas</h3>
+          <p class="ui-card-description">Registros de esforço salvos</p>
         </div>
         <div class="icon-badge violet">${icon('history')}</div>
       </div>
@@ -1983,14 +2382,14 @@ function renderHistory() {
           ${state.logs.map(log => {
             const date = new Date(log.completedAt);
             return `
-              <div class="history-entry">
+              <div class="history-entry ui-card" style="padding:1rem;background:hsl(var(--popover));border-color:hsl(var(--border))">
                 <div class="history-date">
                   <strong>${date.getDate()}</strong>
                   <span>${new Intl.DateTimeFormat('pt-BR', { month:'short' }).format(date).replace('.', '')}</span>
                 </div>
                 <div class="history-copy">
-                  <strong>${esc(log.workoutTitle || 'Treino finalizado')}</strong>
-                  <span>
+                  <strong style="color:hsl(var(--foreground));font-size:1.05rem">${esc(log.workoutTitle || 'Treino finalizado')}</strong>
+                  <span style="color:hsl(var(--muted-foreground))">
                     ${formatDate(log.completedAt, { weekday:'long', year:'numeric', day:'2-digit', month:'long' })}
                     · ${log.exercisesCompleted || 0} exercícios concluídos
                     ${log.note ? `· Anotação: ${esc(log.note)}` : ''}
@@ -2004,18 +2403,22 @@ function renderHistory() {
           }).join('')}
         </div>
       ` : `
-        <div class="empty-state">
+        <div class="empty-state ui-card" style="border:2px dashed hsl(var(--border));background:transparent;padding:2.5rem 1rem">
           <div class="empty-orb">${icon('history')}</div>
           <h4>Nenhuma sessão registrada</h4>
-          <p>Finalize um dos seus treinos clicando em "Concluir" para gravar o tempo e anotações.</p>
-          <button class="btn btn-primary btn-small" data-page="workouts">
-            Ir para Meus Treinos
-          </button>
+          <p style="color:hsl(var(--muted-foreground));margin-bottom:1.2rem">Finalize um dos seus treinos clicando em "Concluir" para gravar o tempo e anotações.</p>
+          ${uiButton({
+            text: 'Ir para Meus Treinos',
+            icon: 'dumbbell',
+            variant: 'default',
+            size: 'sm',
+            attrs: 'data-page="workouts"'
+          })}
         </div>
       `}
     </section>
 
-    <div class="footer-credit">
+    <div class="footer-credit" style="color:hsl(var(--muted-foreground));font-size:0.8rem;text-align:center;margin-top:1.5rem">
       A consistência nos registros reflete diretamente o seu comprometimento.
     </div>`;
 }
@@ -2025,6 +2428,7 @@ function renderHistory() {
    ============================================================================== */
 function renderAdmin() {
   const members = state.users.filter(u => u.role === 'member');
+  const totalUsers = state.authProvider === 'supabase' ? (state.userCount ?? '—') : members.length;
   const active = members.filter(u => u.active).length;
   const completed = members.reduce((sum, u) => sum + (u.completedCount || 0), 0);
   const search = state.userSearch.toLocaleLowerCase('pt-BR').trim();
@@ -2037,84 +2441,120 @@ function renderAdmin() {
         <p>Controle de membros e segurança das credenciais.</p>
       </div>
       <div class="heading-actions">
-        <button class="btn btn-primary" data-action="create-user">
-          ${icon('plus')} Criar usuário
-        </button>
+        ${uiButton({
+          text: 'Criar usuário',
+          icon: 'plus',
+          variant: 'default',
+          attrs: 'data-action="create-user"'
+        })}
       </div>
     </div>
 
     <div class="metric-strip">
-      <div class="metric-box">
-        <span>Usuários cadastrados</span>
-        <strong>${members.length}</strong>
+      <div class="metric-box ui-card">
+        <span style="color:hsl(var(--muted-foreground));font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Usuários cadastrados</span>
+        <strong style="color:hsl(var(--foreground))">${totalUsers}</strong>
       </div>
-      <div class="metric-box">
-        <span>Contas ativas</span>
-        <strong>${active}</strong>
+      <div class="metric-box ui-card">
+        <span style="color:hsl(var(--muted-foreground));font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Contas ativas</span>
+        <strong style="color:hsl(var(--foreground))">${active}</strong>
       </div>
-      <div class="metric-box">
-        <span>Sessões registradas</span>
-        <strong>${completed}</strong>
+      <div class="metric-box ui-card">
+        <span style="color:hsl(var(--muted-foreground));font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Sessões registradas</span>
+        <strong style="color:hsl(var(--foreground))">${completed}</strong>
       </div>
     </div>
 
-    <section class="panel">
+    <section class="panel ui-card">
       <div class="panel-heading">
         <div>
-          <h3>Contas cadastradas</h3>
-          <p>Gerenciamento de acessos e senhas</p>
+          <h3 class="ui-card-title">Contas cadastradas</h3>
+          <p class="ui-card-description">Gerenciamento de acessos e senhas</p>
         </div>
         <div class="icon-badge emerald">${icon('users')}</div>
       </div>
 
-      <div class="filter-bar">
-        <div class="search-box">
+      <div class="filter-bar" style="margin-bottom:1.2rem">
+        <div class="search-box" style="flex:1">
           <span class="search-glass">${icon('search')}</span>
-          <input class="field" id="user-search" placeholder="Buscar por nome ou e-mail…" value="${esc(state.userSearch)}" />
+          <input class="field ui-input" id="user-search" placeholder="Buscar por nome ou e-mail…" value="${esc(state.userSearch)}" />
         </div>
-        <span class="result-count">${visible.length} conta(s)</span>
+        ${uiBadge({ text: `${visible.length} conta(s)`, variant: 'secondary' })}
       </div>
 
-      <div class="table-wrap">
-        <table class="data-table">
+      <div class="table-wrap ui-table-container">
+        <table class="data-table ui-table">
           <thead>
-            <tr>
-              <th>Usuário</th>
-              <th>Perfil</th>
-              <th>Status</th>
-              <th>Treinos</th>
-              <th>Sessões</th>
-              <th style="text-align:right">Ações</th>
+            <tr class="ui-table-header">
+              <th class="ui-table-head">Usuário</th>
+              <th class="ui-table-head">Perfil</th>
+              <th class="ui-table-head">Status</th>
+              <th class="ui-table-head">Treinos</th>
+              <th class="ui-table-head">Sessões</th>
+              <th class="ui-table-head" style="text-align:right">Ações</th>
             </tr>
           </thead>
           <tbody>
             ${visible.map(u => `
-              <tr>
-                <td data-label="Usuário">
-                  <div class="table-user">
-                    <div class="avatar">${esc(initials(u.name))}</div>
+              <tr class="ui-table-row">
+                <td class="ui-table-cell" data-label="Usuário">
+                  <div class="table-user" style="display:flex;align-items:center;gap:0.75rem">
+                    ${uiAvatar({ name: u.name, size: 'md' })}
                     <div>
-                      <strong>${esc(u.name)}</strong>
-                      <small>${esc(u.email)}</small>
+                      <strong style="color:hsl(var(--foreground))">${esc(u.name)}</strong>
+                      <small style="color:hsl(var(--muted-foreground));display:block">${esc(u.email)}</small>
                     </div>
                   </div>
                 </td>
-                <td data-label="Perfil"><span class="role-chip">${u.role === 'admin' ? 'Administrador' : 'Membro'}</span></td>
-                <td data-label="Status"><span class="status-chip ${u.active ? '' : 'inactive'}">${u.active ? 'Ativo' : 'Desativado'}</span></td>
-                <td data-label="Treinos">${u.workoutCount || 0}</td>
-                <td data-label="Sessões">${u.completedCount || 0}</td>
-                <td data-label="Ações">
-                  <div class="table-actions">
+                <td class="ui-table-cell" data-label="Perfil">
+                  ${uiBadge({
+                    text: u.role === 'admin' ? 'Administrador' : 'Membro',
+                    variant: u.role === 'admin' ? 'primary' : 'secondary'
+                  })}
+                </td>
+                <td class="ui-table-cell" data-label="Status">
+                  ${uiBadge({
+                    text: u.active ? 'Ativo' : 'Desativado',
+                    variant: u.active ? 'emerald' : 'outline'
+                  })}
+                </td>
+                <td class="ui-table-cell" data-label="Treinos">${u.workoutCount || 0}</td>
+                <td class="ui-table-cell" data-label="Sessões">${u.completedCount || 0}</td>
+                <td class="ui-table-cell" data-label="Ações" style="text-align:right">
+                  <div class="table-actions" style="display:flex;gap:0.4rem;justify-content:flex-end">
                     ${u.role === 'member' ? `
-                      <button class="btn btn-outline btn-small" data-action="reset-user-password" data-id="${esc(u.id)}">Senha</button>
-                      <button class="btn ${u.active ? 'btn-outline' : 'btn-primary'} btn-small" data-action="toggle-user" data-id="${esc(u.id)}" data-active="${u.active ? 'false' : 'true'}">${u.active ? 'Desativar' : 'Ativar'}</button>
-                      <button class="btn btn-danger btn-small" data-action="delete-user" data-id="${esc(u.id)}">${icon('trash')}</button>
+                      ${uiButton({
+                        text: 'Senha',
+                        variant: 'outline',
+                        size: 'sm',
+                        attrs: `data-action="reset-user-password" data-id="${esc(u.id)}"`
+                      })}
+                      ${uiButton({
+                        text: u.active ? 'Desativar' : 'Ativar',
+                        variant: u.active ? 'outline' : 'default',
+                        size: 'sm',
+                        attrs: `data-action="toggle-user" data-id="${esc(u.id)}" data-active="${u.active ? 'false' : 'true'}"`
+                      })}
+                      ${uiButton({
+                        icon: 'trash',
+                        variant: 'destructive',
+                        size: 'icon-sm',
+                        title: 'Excluir usuário',
+                        attrs: `data-action="delete-user" data-id="${esc(u.id)}"`
+                      })}
                     ` : `<span style="color:hsl(var(--muted-foreground));font-size:0.8rem">Conta Principal</span>`}
                   </div>
                 </td>
               </tr>
             `).join('') || `
-              <tr><td colspan="6"><div class="empty-state"><h4>Nenhuma conta encontrada</h4><p>Crie uma conta ou altere os termos de busca.</p></div></td></tr>
+              <tr class="ui-table-row">
+                <td class="ui-table-cell" colspan="6">
+                  <div class="empty-state" style="padding:2rem">
+                    <h4>Nenhuma conta encontrada</h4>
+                    <p style="color:hsl(var(--muted-foreground))">Crie uma conta ou altere os termos de busca.</p>
+                  </div>
+                </td>
+              </tr>
             `}
           </tbody>
         </table>
@@ -2247,26 +2687,30 @@ function openViewWorkout(workoutId) {
   const exercises = workout.exercises || [];
 
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal modal-wide" role="dialog" aria-modal="true" style="max-height:92vh;display:flex;flex-direction:column">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal modal-wide ui-dialog ui-dialog-content" role="dialog" aria-modal="true" style="max-height:92vh;display:flex;flex-direction:column">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>${esc(workout.title)}</h3>
-            <p>${esc(workout.focus || 'Hipertrofia')} · ${exercises.length} exercício${exercises.length === 1 ? '' : 's'} · ${workout.days || 4}x/sem</p>
+            <h3 class="ui-dialog-title">${esc(workout.title)}</h3>
+            <p class="ui-dialog-description">${esc(workout.focus || 'Hipertrofia')} · ${exercises.length} exercício${exercises.length === 1 ? '' : 's'} · ${workout.days || 4}x/sem</p>
           </div>
-          <button class="modal-close" data-action="close-modal" aria-label="Fechar">
-            ${icon('x')}
-          </button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal" aria-label="Fechar"'
+          })}
         </div>
 
-        <div style="overflow-y:auto;flex:1;padding:0.5rem 0">
+        <div style="overflow-y:auto;flex:1;padding:0.75rem 0;display:flex;flex-direction:column;gap:0.75rem">
           ${exercises.length ? exercises.map((ex, i) => {
             const src = gifUrl(ex);
             const name = translateExercise(ex.name);
             const target = ex.targetMuscles?.[0] ? labelMuscle(ex.targetMuscles[0]) : (ex.bodyParts?.[0] ? labelBody(ex.bodyParts[0]) : 'Geral');
             return `
-              <div class="view-exercise-card" style="display:flex;gap:1rem;align-items:center;padding:1rem;border-bottom:1px solid hsl(var(--border))">
-                <div class="view-gif-wrap" style="flex-shrink:0;width:120px;height:120px;border-radius:var(--radius-md);overflow:hidden;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center">
+              <div class="view-exercise-card ui-card" style="display:flex;gap:1.1rem;align-items:center;padding:1rem;background:hsl(var(--card))">
+                <div class="view-gif-wrap" style="flex-shrink:0;width:110px;height:110px;border-radius:var(--radius-md);overflow:hidden;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center;border:1px solid hsl(var(--border))">
                   ${src
                     ? `<img src="${esc(src)}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
                     : ''}
@@ -2276,44 +2720,58 @@ function openViewWorkout(workoutId) {
                   </div>
                 </div>
                 <div style="flex:1;min-width:0">
-                  <strong style="font-size:1.05rem;display:block;margin-bottom:4px">${esc(name)}</strong>
-                  <span class="meta-chip" style="margin-bottom:6px;display:inline-block">${esc(target)}</span>
-                  <div class="view-stats" style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:8px">
+                  <strong style="font-size:1.05rem;display:block;margin-bottom:6px;color:hsl(var(--foreground))">${esc(name)}</strong>
+                  <div style="margin-bottom:8px">
+                    ${uiBadge({ text: target, variant: 'secondary' })}
+                  </div>
+                  <div class="view-stats" style="display:flex;gap:1.2rem;flex-wrap:wrap">
                     <div>
                       <div class="view-stat-value" style="font-size:1.2rem;font-weight:800;color:hsl(var(--primary))">${ex.sets || 3}</div>
-                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Séries</div>
+                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:700">Séries</div>
                     </div>
                     <div>
                       <div class="view-stat-value" style="font-size:1.2rem;font-weight:800;color:hsl(var(--foreground))">${esc(ex.reps || '8–12')}</div>
-                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Reps</div>
+                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:700">Reps</div>
                     </div>
                     <div>
                       <div class="view-stat-value" style="font-size:1.2rem;font-weight:800;color:hsl(var(--foreground))">${ex.rest || 90}s</div>
-                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:600">Descanso</div>
+                      <div class="view-stat-label" style="font-size:0.7rem;color:hsl(var(--muted-foreground));text-transform:uppercase;font-weight:700">Descanso</div>
                     </div>
                   </div>
                 </div>
               </div>`;
           }).join('') : `
-            <div class="empty-state" style="padding:2rem">
+            <div class="empty-state ui-card" style="padding:2.5rem;border:2px dashed hsl(var(--border));background:transparent">
               <div class="empty-orb">${icon('dumbbell')}</div>
               <h4>Nenhum exercício neste treino</h4>
-              <p>Edite o treino para adicionar exercícios.</p>
+              <p style="color:hsl(var(--muted-foreground))">Edite o treino para adicionar exercícios.</p>
             </div>
           `}
         </div>
 
         ${workout.notes ? `
-          <div style="padding:0.75rem 1rem;border-top:1px solid hsl(var(--border));font-size:0.85rem;color:hsl(var(--muted-foreground))">
-            <strong>Anotações:</strong> ${esc(workout.notes)}
+          <div style="margin-top:0.75rem">
+            ${uiAlert({
+              title: 'Anotações da rotina',
+              description: esc(workout.notes),
+              variant: 'default',
+              icon: 'activity'
+            })}
           </div>
         ` : ''}
 
-        <div class="modal-actions">
-          <button class="btn btn-outline" data-action="close-modal">Fechar</button>
-          <button class="btn btn-primary" data-action="edit-workout" data-id="${esc(workout.id)}">
-            ${icon('edit')} Editar treino
-          </button>
+        <div class="modal-actions ui-dialog-footer" style="margin-top:1.2rem">
+          ${uiButton({
+            text: 'Fechar',
+            variant: 'outline',
+            attrs: 'data-action="close-modal"'
+          })}
+          ${uiButton({
+            text: 'Editar treino',
+            icon: 'edit',
+            variant: 'default',
+            attrs: `data-action="edit-workout" data-id="${esc(workout.id)}"`
+          })}
         </div>
       </section>
     </div>`;
@@ -2494,30 +2952,39 @@ async function deleteWorkout(workoutId) {
 function openPicker() {
   if (state.pickerSearch === undefined) state.pickerSearch = '';
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal modal-wide" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal modal-wide ui-dialog ui-dialog-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>Adicionar exercícios</h3>
-            <p>Selecione um ou mais movimentos para compor sua rotina.</p>
+            <h3 class="ui-dialog-title">Adicionar exercícios</h3>
+            <p class="ui-dialog-description">Selecione um ou mais movimentos para compor sua rotina.</p>
           </div>
-          <button class="modal-close" data-action="close-modal" aria-label="Fechar">
-            ${icon('x')}
-          </button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal" aria-label="Fechar"'
+          })}
         </div>
 
-        <div class="filter-bar">
-          <div class="search-box">
+        <div class="filter-bar" style="margin-bottom:1rem">
+          <div class="search-box" style="flex:1">
             <span class="search-glass">${icon('search')}</span>
-            <input class="field" id="picker-search" placeholder="Buscar exercício por nome…" value="${esc(state.pickerSearch || '')}" />
+            <input class="field ui-input" id="picker-search" placeholder="Buscar exercício por nome…" value="${esc(state.pickerSearch || '')}" />
           </div>
           <span class="result-count" id="picker-count"></span>
         </div>
 
         <div class="exercise-picker" id="picker-results">${renderPickerResults()}</div>
 
-        <div class="modal-actions">
-          <button class="btn btn-outline" data-action="close-modal">Fechar</button>
+        <div class="modal-actions ui-dialog-footer" style="margin-top:1.25rem">
+          ${uiButton({
+            text: 'Concluir seleção',
+            icon: 'check',
+            variant: 'default',
+            attrs: 'data-action="close-modal"'
+          })}
         </div>
       </section>
     </div>`;
@@ -2553,13 +3020,13 @@ function filteredPickerExercises() {
 
 function renderPickerResults() {
   const items = filteredPickerExercises();
-  if (!state.exercises.length) return `<div class="empty-state"><p>Carregando biblioteca…</p></div>`;
-  if (!items.length) return `<div class="empty-state"><p>Nenhum exercício encontrado com esse nome.</p></div>`;
+  if (!state.exercises.length) return `<div class="empty-state ui-card" style="padding:2rem"><p>Carregando biblioteca…</p></div>`;
+  if (!items.length) return `<div class="empty-state ui-card" style="padding:2rem"><p>Nenhum exercício encontrado com esse nome.</p></div>`;
 
   return items.map(ex => {
     const isAdded = state.draft?.exercises?.some(e => String(e.id) === String(ex.id));
     return `
-      <div class="picker-exercise ${isAdded ? 'is-selected' : ''}" data-id="${esc(ex.id)}">
+      <div class="picker-exercise ui-card ${isAdded ? 'is-selected' : ''}" data-id="${esc(ex.id)}" style="background:hsl(var(--card));padding:0.75rem">
         <div class="builder-thumb" data-action="picker-details" data-id="${esc(ex.id)}" role="button" title="Ver demonstração e técnica">
           ${gifUrl(ex) ? `
             <img src="${esc(gifUrl(ex))}" alt="" loading="lazy" onerror="this.style.display='none'">
@@ -2567,13 +3034,21 @@ function renderPickerResults() {
           ` : `<span style="color:hsl(var(--muted-foreground))">${icon('dumbbell')}</span>`}
         </div>
         <div class="builder-ex-info" data-action="picker-details" data-id="${esc(ex.id)}" role="button" tabindex="0" title="Ver demonstração e técnica">
-          <strong>${esc(translateExercise(ex.name))}</strong>
-          <span>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))} · ${esc(labelEquipment(ex.equipment?.[0] || 'Vários'))}</span>
-          <small class="picker-preview-hint">${icon('activity')} Toque para visualizar</small>
+          <strong style="color:hsl(var(--foreground))">${esc(translateExercise(ex.name))}</strong>
+          <span style="display:flex;gap:0.4rem;align-items:center;margin-top:2px">
+            ${uiBadge({ text: labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'), variant: 'secondary' })}
+            <small style="color:hsl(var(--muted-foreground))">${esc(labelEquipment(ex.equipment?.[0] || 'Vários'))}</small>
+          </span>
+          <small class="picker-preview-hint" style="color:hsl(var(--primary));display:flex;align-items:center;gap:4px;margin-top:4px">${icon('activity')} Toque para visualizar</small>
         </div>
-        <button class="btn ${isAdded ? 'btn-outline is-selected' : 'btn-primary'} btn-small" data-action="picker-toggle" data-id="${esc(ex.id)}">
-          ${isAdded ? `${icon('check')} Adicionado` : `${icon('plus')} Adicionar`}
-        </button>
+        ${uiButton({
+          text: isAdded ? 'Adicionado' : 'Adicionar',
+          icon: isAdded ? 'check' : 'plus',
+          variant: isAdded ? 'secondary' : 'default',
+          size: 'sm',
+          className: isAdded ? 'is-selected' : '',
+          attrs: `data-action="picker-toggle" data-id="${esc(ex.id)}"`
+        })}
       </div>
     `;
   }).join('');
@@ -2597,7 +3072,7 @@ function togglePickerExercise(idValue, triggerEl) {
       card.classList.remove('is-selected');
       const btn = card.querySelector('[data-action="picker-toggle"], [data-action="picker-add"]');
       if (btn) {
-        btn.className = 'btn btn-primary btn-small';
+        btn.className = 'btn btn-primary btn-small ui-button ui-button--default ui-button--sm';
         btn.innerHTML = `${icon('plus')} Adicionar`;
         hydrateIcons(btn);
       }
@@ -2609,7 +3084,7 @@ function togglePickerExercise(idValue, triggerEl) {
       card.classList.add('is-selected');
       const btn = card.querySelector('[data-action="picker-toggle"], [data-action="picker-add"]');
       if (btn) {
-        btn.className = 'btn btn-outline btn-small is-selected';
+        btn.className = 'btn btn-outline btn-small is-selected ui-button ui-button--secondary ui-button--sm';
         btn.innerHTML = `${icon('check')} Adicionado`;
         hydrateIcons(btn);
       }
@@ -2640,20 +3115,24 @@ function openExerciseDetails(ex) {
   const isAdded = state.draft?.exercises?.some(e => String(e.id) === String(ex.id));
   const fromPicker = state.modalHistory === 'picker';
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal modal-wide" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal modal-wide ui-dialog ui-dialog-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>${esc(translateExercise(ex.name))}</h3>
-            <p>${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))} · ${esc(labelEquipment(ex.equipment?.[0] || 'Vários'))}</p>
+            <h3 class="ui-dialog-title">${esc(translateExercise(ex.name))}</h3>
+            <p class="ui-dialog-description">${esc(labelBody(ex.bodyParts?.[0] || ex.targetMuscles?.[0] || 'Geral'))} · ${esc(labelEquipment(ex.equipment?.[0] || 'Vários'))}</p>
           </div>
-          <button class="modal-close" data-action="${fromPicker ? 'return-to-picker' : 'close-modal'}" aria-label="Fechar">
-            ${icon('x')}
-          </button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: `data-action="${fromPicker ? 'return-to-picker' : 'close-modal'}" aria-label="Fechar"`
+          })}
         </div>
 
         <div class="exercise-detail-grid">
-          <div class="exercise-media exercise-modal-media">
+          <div class="exercise-media exercise-modal-media" style="border-radius:var(--radius-lg);overflow:hidden;border:1px solid hsl(var(--border))">
             ${src ? `
               <img src="${esc(src)}" alt="Demonstração em GIF de ${esc(translateExercise(ex.name))}" onerror="this.style.display='none'">
             ` : `
@@ -2666,35 +3145,44 @@ function openExerciseDetails(ex) {
 
           <div>
             <div class="section-title" style="margin-top:0">DEMONSTRAÇÃO DO GIF</div>
-            <div class="summary-callout" style="margin: 0.4rem 0 0.9rem; font-size: 0.85rem; line-height: 1.6">
-              ${describeGif(ex)}
-            </div>
+            ${uiAlert({
+              title: 'Execução e biomecânica',
+              description: describeGif(ex),
+              variant: 'default',
+              icon: 'activity'
+            })}
 
-            <div class="section-title" style="margin-top:0">MÚSCULOS ATIVADOS</div>
-            <div class="exercise-meta" style="margin-bottom:0.9rem">
-              ${(ex.targetMuscles || []).map(m => `<span class="meta-chip">${esc(labelMuscle(m))}</span>`).join('') || '<span class="meta-chip">Geral</span>'}
+            <div class="section-title" style="margin-top:1.2rem">MÚSCULOS ATIVADOS</div>
+            <div class="exercise-meta" style="margin-bottom:0.9rem;display:flex;gap:0.4rem;flex-wrap:wrap">
+              ${(ex.targetMuscles || []).map(m => uiBadge({ text: labelMuscle(m), variant: 'secondary' })).join('') || uiBadge({ text: 'Geral', variant: 'secondary' })}
             </div>
 
             <div class="section-title">GUIA PASSO A PASSO (TRADUZIDO)</div>
             ${ex.instructions?.length ? `
-              <ol style="font-size:0.85rem;color:hsl(var(--foreground));line-height:1.7;padding-left:1.2rem;margin:0">
+              <ol style="font-size:0.875rem;color:hsl(var(--foreground));line-height:1.7;padding-left:1.2rem;margin:0">
                 ${ex.instructions.slice(0, 8).map(s => `<li style="margin-bottom:0.4rem">${esc(translateInstruction(s))}</li>`).join('')}
               </ol>
             ` : `
-              <p style="font-size:0.85rem;color:hsl(var(--muted-foreground));line-height:1.6">
+              <p style="font-size:0.875rem;color:hsl(var(--muted-foreground));line-height:1.6">
                 Observe a demonstração no GIF acima como guia visual. Mantenha a postura alinhada, respiração cadenciada e execute a amplitude completa com controle articular.
               </p>
             `}
           </div>
         </div>
 
-        <div class="modal-actions">
-          <button class="btn btn-outline" data-action="${fromPicker ? 'return-to-picker' : 'close-modal'}">
-            ${fromPicker ? 'Voltar aos exercícios' : 'Fechar'}
-          </button>
-          <button class="btn ${isAdded ? 'btn-outline is-selected' : 'btn-primary'}" data-action="detail-toggle" data-id="${esc(ex.id)}">
-            ${isAdded ? `${icon('check')} Na sua rotina (alternar)` : `${icon('plus')} Adicionar ao treino`}
-          </button>
+        <div class="modal-actions ui-dialog-footer" style="margin-top:1.4rem">
+          ${uiButton({
+            text: fromPicker ? 'Voltar aos exercícios' : 'Fechar',
+            variant: 'outline',
+            attrs: `data-action="${fromPicker ? 'return-to-picker' : 'close-modal'}"`
+          })}
+          ${uiButton({
+            text: isAdded ? 'Na sua rotina (alternar)' : 'Adicionar ao treino',
+            icon: isAdded ? 'check' : 'plus',
+            variant: isAdded ? 'secondary' : 'default',
+            className: isAdded ? 'is-selected' : '',
+            attrs: `data-action="detail-toggle" data-id="${esc(ex.id)}"`
+          })}
         </div>
       </section>
     </div>`;
@@ -2709,44 +3197,55 @@ function openCompleteModal(workoutId) {
   if (!workout) return;
 
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal ui-dialog ui-dialog-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>Registrar sessão concluída</h3>
-            <p>Parabéns pela dedicação! Grave os dados do seu treino de hoje.</p>
+            <h3 class="ui-dialog-title">Registrar sessão concluída</h3>
+            <p class="ui-dialog-description">Parabéns pela dedicação! Grave os dados do seu treino de hoje.</p>
           </div>
-          <button class="modal-close" data-action="close-modal">
-            ${icon('x')}
-          </button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal"'
+          })}
         </div>
 
         <form id="complete-form">
-          <div class="form-group">
-            <label class="form-label">Rotina realizada</label>
-            <input class="field" value="${esc(workout.title)}" disabled />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label">Rotina realizada</label>
+            <input class="field ui-input" value="${esc(workout.title)}" disabled style="opacity:0.7" />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Duração estimada (minutos)</label>
-            <input class="field" name="duration" type="number" min="1" max="600" value="45" required />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label">Duração estimada (minutos)</label>
+            <input class="field ui-input" name="duration" type="number" min="1" max="600" value="45" required />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Exercícios concluídos</label>
-            <input class="field" name="exercises" type="number" min="0" max="100" value="${workout.exercises?.length || 0}" required />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label">Exercícios concluídos</label>
+            <input class="field ui-input" name="exercises" type="number" min="0" max="100" value="${workout.exercises?.length || 0}" required />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Anotação pessoal (opcional)</label>
-            <input class="field" name="note" maxlength="500" placeholder="Ex.: aumentei a carga no supino e zerei as repetições" />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label">Anotação pessoal (opcional)</label>
+            <input class="field ui-input" name="note" maxlength="500" placeholder="Ex.: aumentei a carga no supino e zerei as repetições" />
           </div>
 
-          <div class="modal-actions">
-            <button type="button" class="btn btn-outline" data-action="close-modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">
-              ${icon('check')} Salvar sessão
-            </button>
+          <div class="modal-actions ui-dialog-footer" style="margin-top:1.4rem">
+            ${uiButton({
+              text: 'Cancelar',
+              variant: 'outline',
+              attrs: 'type="button" data-action="close-modal"'
+            })}
+            ${uiButton({
+              text: 'Salvar sessão',
+              icon: 'check',
+              variant: 'default',
+              attrs: 'type="submit"'
+            })}
           </div>
         </form>
       </section>
@@ -2813,17 +3312,36 @@ function openCompleteModal(workoutId) {
 function openRestTimer(seconds = 90) {
   let remaining = seconds;
   const overlay = document.createElement('div');
-  overlay.className = 'rest-timer-overlay';
+  overlay.className = 'rest-timer-overlay ui-dialog-backdrop';
   overlay.id = 'rest-timer';
   function updateDisplay() {
     const min = Math.floor(remaining / 60);
     const sec = remaining % 60;
+    const percent = Math.min(100, Math.max(0, ((seconds - remaining) / seconds) * 100));
     overlay.innerHTML = `
-      <div class="rest-timer-label">${icon('timer')} Tempo de descanso</div>
-      <div class="rest-timer-display">${min}:${String(sec).padStart(2, '0')}</div>
-      <div class="rest-timer-actions">
-        <button class="btn btn-outline" data-action="cancel-timer">Pular</button>
-        <button class="btn btn-primary" data-action="cancel-timer">${icon('check')} Pronto!</button>
+      <div class="ui-dialog ui-dialog-content ui-card" style="text-align:center;padding:2.5rem 2rem;max-width:420px;display:flex;flex-direction:column;align-items:center;background:hsl(var(--popover));border-color:hsl(var(--border))">
+        <div class="rest-timer-label" style="display:flex;align-items:center;gap:6px;color:hsl(var(--muted-foreground));font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">
+          ${icon('timer')} Tempo de descanso
+        </div>
+        <div class="rest-timer-display" style="font:900 4.8rem/1 'Manrope',sans-serif;color:hsl(var(--primary));letter-spacing:-0.03em;margin-bottom:1rem">
+          ${min}:${String(sec).padStart(2, '0')}
+        </div>
+        <div class="ui-progress" style="width:100%;margin-bottom:1.8rem">
+          <div class="ui-progress-indicator" style="width:${percent}%"></div>
+        </div>
+        <div class="rest-timer-actions" style="display:flex;gap:0.75rem;width:100%;justify-content:center">
+          ${uiButton({
+            text: 'Pular',
+            variant: 'outline',
+            attrs: 'data-action="cancel-timer" style="flex:1"'
+          })}
+          ${uiButton({
+            text: 'Pronto!',
+            icon: 'check',
+            variant: 'default',
+            attrs: 'data-action="cancel-timer" style="flex:1"'
+          })}
+        </div>
       </div>
     `;
     hydrateIcons(overlay);
@@ -2858,39 +3376,54 @@ function openSupabaseConfigModal(triggerGoogleAfter = false) {
   const currentKey = state.supabaseAnonKey || localStorage.getItem('mogger_supabase_anon_key') || '';
 
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal ui-dialog ui-dialog-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>Configurar Banco do Supabase</h3>
-            <p>Conecte seu projeto Supabase para habilitar login com Google e persistência em nuvem.</p>
+            <h3 class="ui-dialog-title">Configurar Banco do Supabase</h3>
+            <p class="ui-dialog-description">Conecte seu projeto Supabase para habilitar login com Google e persistência em nuvem.</p>
           </div>
-          <button class="modal-close" data-action="close-modal">
-            ${icon('x')}
-          </button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal"'
+          })}
         </div>
 
         <form id="supabase-config-form">
-          <div class="form-group">
-            <label class="form-label" for="cfg-sb-url">URL do Projeto Supabase</label>
-            <input class="field" id="cfg-sb-url" name="url" placeholder="https://seu-projeto.supabase.co" value="${esc(currentUrl)}" required />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label" for="cfg-sb-url">URL do Projeto Supabase</label>
+            <input class="field ui-input" id="cfg-sb-url" name="url" placeholder="https://seu-projeto.supabase.co" value="${esc(currentUrl)}" required />
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="cfg-sb-key">Chave Anon do Supabase (Pública)</label>
-            <input class="field" id="cfg-sb-key" name="key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." value="${esc(currentKey)}" required />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label" for="cfg-sb-key">Chave Anon do Supabase (Pública)</label>
+            <input class="field ui-input" id="cfg-sb-key" name="key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." value="${esc(currentKey)}" required />
           </div>
 
-          <div class="summary-callout" style="margin-top:0.5rem">
-            <b>Dica de configuração:</b><br>
-            Execute o arquivo <code>supabase-schema.sql</code> no SQL Editor do seu Supabase para criar as tabelas com segurança (RLS). No Supabase Dashboard, habilite o provider <b>Google</b> em <i>Authentication → Providers</i>.
+          <div style="margin:1rem 0">
+            ${uiAlert({
+              title: 'Dica de configuração',
+              description: 'Execute o arquivo <code>supabase-schema.sql</code> no SQL Editor do seu Supabase para criar as tabelas com segurança (RLS). No Supabase Dashboard, habilite o provider <b>Google</b> em <i>Authentication → Providers</i>.',
+              variant: 'default',
+              icon: 'activity'
+            })}
           </div>
 
-          <div class="modal-actions">
-            <button type="button" class="btn btn-outline" data-action="close-modal">Fechar</button>
-            <button type="submit" class="btn btn-primary">
-              ${icon('check')} Salvar &amp; Conectar
-            </button>
+          <div class="modal-actions ui-dialog-footer" style="margin-top:1.4rem">
+            ${uiButton({
+              text: 'Fechar',
+              variant: 'outline',
+              attrs: 'type="button" data-action="close-modal"'
+            })}
+            ${uiButton({
+              text: 'Salvar & Conectar',
+              icon: 'check',
+              variant: 'default',
+              attrs: 'type="submit"'
+            })}
           </div>
         </form>
       </section>
@@ -2922,52 +3455,64 @@ function openSupabaseConfigModal(triggerGoogleAfter = false) {
 
 function openUserProfileModal() {
   if (!state.user) return;
-  const userAvatar = state.user.avatar
-    ? `<img src="${esc(state.user.avatar)}" alt="${esc(state.user.name)}" />`
-    : esc(initials(state.user.name));
 
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal modal-sheet" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal modal-sheet ui-dialog ui-sheet-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div style="display:flex;align-items:center;gap:0.85rem">
-            <div class="avatar" style="width:3rem;height:3rem;font-size:1.15rem">${userAvatar}</div>
+            ${uiAvatar({ name: state.user.name, avatarUrl: state.user.avatar, size: 'lg' })}
             <div>
-              <h3 style="font-size:1.15rem">${esc(state.user.name)}</h3>
-              <p style="font-size:0.82rem">${esc(state.user.email)}</p>
+              <h3 class="ui-dialog-title" style="font-size:1.15rem">${esc(state.user.name)}</h3>
+              <p class="ui-dialog-description" style="font-size:0.82rem">${esc(state.user.email)}</p>
             </div>
           </div>
-          <button class="modal-close" data-action="close-modal" aria-label="Fechar">${icon('x')}</button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal" aria-label="Fechar"'
+          })}
         </div>
 
-        <div style="display:flex;flex-direction:column;gap:0.75rem;margin:1.2rem 0">
-          <div class="panel" style="padding:0.9rem;background:hsl(var(--popover))">
-            <div style="font-size:0.72rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;margin-bottom:6px">Status da Conta</div>
+        <div style="display:flex;flex-direction:column;gap:0.85rem;margin:1.4rem 0">
+          <div class="ui-card" style="padding:1rem;background:hsl(var(--popover))">
+            <div style="font-size:0.75rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;margin-bottom:8px">Status da Conta</div>
             <div style="display:flex;align-items:center;gap:0.5rem">
-              <span class="status-chip">${state.user.role === 'admin' ? 'Administrador' : 'Membro Ativo'}</span>
+              ${uiBadge({
+                text: state.user.role === 'admin' ? 'Administrador' : 'Membro Ativo',
+                variant: state.user.role === 'admin' ? 'primary' : 'emerald'
+              })}
             </div>
           </div>
 
-          <div class="panel" style="padding:0.9rem;background:hsl(var(--popover))">
-            <div style="font-size:0.72rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;margin-bottom:8px">Escala de Resolução</div>
-            <div class="scale-selector" style="display:flex;width:100%">
-              <button class="scale-btn ${state.resolutionScale==='100'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="100">100%</button>
-              <button class="scale-btn ${state.resolutionScale==='125'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="125">125%</button>
-              <button class="scale-btn ${state.resolutionScale==='150'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="150">150%</button>
+          <div class="ui-card" style="padding:1rem;background:hsl(var(--popover))">
+            <div style="font-size:0.75rem;color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;margin-bottom:10px">Escala de Resolução</div>
+            <div class="scale-selector ui-tabs-list" style="display:flex;width:100%;background:hsl(var(--muted));padding:3px;border-radius:var(--radius-md)">
+              <button class="scale-btn ui-tabs-trigger ${state.resolutionScale==='100'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="100">100%</button>
+              <button class="scale-btn ui-tabs-trigger ${state.resolutionScale==='125'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="125">125%</button>
+              <button class="scale-btn ui-tabs-trigger ${state.resolutionScale==='150'?'active':''}" style="flex:1;padding:8px" data-action="set-scale" data-scale="150">150%</button>
             </div>
           </div>
 
           ${state.user.role === 'admin' ? `
-            <button class="btn btn-outline" data-action="open-supabase-modal" style="width:100%;justify-content:flex-start;padding:0.85rem">
-              ${icon('settings')} Configurar Banco Supabase
-            </button>
+            ${uiButton({
+              text: 'Configurar Banco Supabase',
+              icon: 'settings',
+              variant: 'outline',
+              attrs: 'data-action="open-supabase-modal" style="width:100%;justify-content:flex-start;padding:0.85rem"'
+            })}
           ` : ''}
         </div>
 
-        <div class="modal-actions" style="margin-top:1.2rem">
-          <button class="btn btn-danger" data-action="logout" style="width:100%;padding:0.85rem;justify-content:center">
-            ${icon('logout')} Sair da conta
-          </button>
+        <div class="modal-actions ui-dialog-footer" style="margin-top:1.4rem">
+          ${uiButton({
+            text: 'Sair da conta',
+            icon: 'logout',
+            variant: 'destructive',
+            attrs: 'data-action="logout" style="width:100%;padding:0.85rem;justify-content:center"'
+          })}
         </div>
       </section>
     </div>`;
@@ -2979,38 +3524,53 @@ function openUserModal(userId = null) {
   const user = state.users.find(u => u.id === userId);
   const editing = Boolean(user);
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal ui-dialog ui-dialog-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>${editing ? 'Redefinir senha' : 'Criar conta de usuário'}</h3>
-            <p>${editing ? 'Crie uma nova senha para o membro.' : 'Cadastre um novo membro no Mogger Gym.'}</p>
+            <h3 class="ui-dialog-title">${editing ? 'Redefinir senha' : 'Criar conta de usuário'}</h3>
+            <p class="ui-dialog-description">${editing ? 'Crie uma nova senha para o membro.' : 'Cadastre um novo membro no Mogger Gym.'}</p>
           </div>
-          <button class="modal-close" data-action="close-modal">${icon('x')}</button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal"'
+          })}
         </div>
         <form id="user-form">
           ${editing ? '' : `
-            <div class="form-group">
-              <label class="form-label">Nome completo</label>
-              <input class="field" name="name" maxlength="80" required placeholder="Nome do atleta" />
+            <div class="form-group ui-form-item">
+              <label class="form-label ui-label">Nome completo</label>
+              <input class="field ui-input" name="name" maxlength="80" required placeholder="Nome do atleta" />
             </div>
-            <div class="form-group">
-              <label class="form-label">E-mail</label>
-              <input class="field" name="email" type="email" maxlength="254" required placeholder="atleta@email.com" />
+            <div class="form-group ui-form-item">
+              <label class="form-label ui-label">E-mail</label>
+              <input class="field ui-input" name="email" type="email" maxlength="254" required placeholder="atleta@email.com" />
             </div>
           `}
-          <div class="form-group">
-            <label class="form-label">${editing ? 'Nova senha' : 'Senha inicial'}</label>
-            <input class="field" name="password" type="password" minlength="10" required autocomplete="new-password" placeholder="Mínimo 10 caracteres" />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label">${editing ? 'Nova senha' : 'Senha inicial'}</label>
+            <input class="field ui-input" name="password" type="password" minlength="10" required autocomplete="new-password" placeholder="Mínimo 10 caracteres" />
           </div>
-          <div class="form-group">
-            <label class="form-label">Confirmar senha</label>
-            <input class="field" name="confirm" type="password" minlength="10" required autocomplete="new-password" placeholder="Repita a senha" />
+          <div class="form-group ui-form-item">
+            <label class="form-label ui-label">Confirmar senha</label>
+            <input class="field ui-input" name="confirm" type="password" minlength="10" required autocomplete="new-password" placeholder="Repita a senha" />
           </div>
-          <div class="form-error" id="user-form-error"></div>
-          <div class="modal-actions">
-            <button type="button" class="btn btn-outline" data-action="close-modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">${editing ? 'Salvar nova senha' : 'Criar conta'}</button>
+          <div class="form-error ui-alert ui-alert--destructive" id="user-form-error" style="display:none;margin-top:0.75rem"></div>
+          <div class="modal-actions ui-dialog-footer" style="margin-top:1.4rem">
+            ${uiButton({
+              text: 'Cancelar',
+              variant: 'outline',
+              attrs: 'type="button" data-action="close-modal"'
+            })}
+            ${uiButton({
+              text: editing ? 'Salvar nova senha' : 'Criar conta',
+              icon: 'check',
+              variant: 'default',
+              attrs: 'type="submit"'
+            })}
           </div>
         </form>
       </section>
@@ -3049,21 +3609,41 @@ function confirmDeleteWorkout(workoutId) {
   const workout = state.workouts.find(w => w.id === workoutId);
   if (!workout) return;
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal ui-dialog ui-dialog-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>Excluir treino?</h3>
-            <p>Esta rotina será excluída permanentemente.</p>
+            <h3 class="ui-dialog-title">Excluir treino?</h3>
+            <p class="ui-dialog-description">Esta rotina será excluída permanentemente.</p>
           </div>
-          <button class="modal-close" data-action="close-modal">${icon('x')}</button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal"'
+          })}
         </div>
-        <div style="padding:1rem;background:rgba(239,68,68,0.12);border-radius:var(--radius-md);color:#fca5a5;font-size:0.9rem">
-          Você está excluindo <b>${esc(workout.title)}</b>. Esta ação não poderá ser desfeita.
+        <div style="margin:1rem 0">
+          ${uiAlert({
+            title: 'Atenção: Ação irreversível',
+            description: `Você está excluindo <b>${esc(workout.title)}</b>. Esta ação não poderá ser desfeita.`,
+            variant: 'destructive',
+            icon: 'trash'
+          })}
         </div>
-        <div class="modal-actions">
-          <button class="btn btn-outline" data-action="close-modal">Cancelar</button>
-          <button class="btn btn-danger" data-action="confirm-delete-workout" data-id="${esc(workout.id)}">Excluir treino</button>
+        <div class="modal-actions ui-dialog-footer">
+          ${uiButton({
+            text: 'Cancelar',
+            variant: 'outline',
+            attrs: 'data-action="close-modal"'
+          })}
+          ${uiButton({
+            text: 'Excluir treino',
+            icon: 'trash',
+            variant: 'destructive',
+            attrs: `data-action="confirm-delete-workout" data-id="${esc(workout.id)}"`
+          })}
         </div>
       </section>
     </div>`;
@@ -3074,21 +3654,41 @@ function confirmDeleteUser(userId) {
   const user = state.users.find(u => u.id === userId);
   if (!user) return;
   modalRoot.innerHTML = `
-    <div class="modal-backdrop" data-action="backdrop-close">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-head">
+    <div class="modal-backdrop ui-dialog-backdrop" data-action="backdrop-close">
+      <section class="modal ui-dialog ui-dialog-content" role="dialog" aria-modal="true">
+        <div class="modal-head ui-dialog-header">
           <div>
-            <h3>Remover usuário?</h3>
-            <p>A conta e os treinos deste atleta serão apagados.</p>
+            <h3 class="ui-dialog-title">Remover usuário?</h3>
+            <p class="ui-dialog-description">A conta e os treinos deste atleta serão apagados permanentemente.</p>
           </div>
-          <button class="modal-close" data-action="close-modal">${icon('x')}</button>
+          ${uiButton({
+            icon: 'x',
+            variant: 'ghost',
+            size: 'icon-sm',
+            className: 'modal-close ui-dialog-close',
+            attrs: 'data-action="close-modal"'
+          })}
         </div>
-        <div style="padding:1rem;background:rgba(239,68,68,0.12);border-radius:var(--radius-md);color:#fca5a5;font-size:0.9rem">
-          Remover <b>${esc(user.name)}</b> (${esc(user.email)}).
+        <div style="margin:1rem 0">
+          ${uiAlert({
+            title: 'Excluir membro da plataforma',
+            description: `Remover <b>${esc(user.name)}</b> (${esc(user.email)}). Todos os dados associados serão perdidos.`,
+            variant: 'destructive',
+            icon: 'trash'
+          })}
         </div>
-        <div class="modal-actions">
-          <button class="btn btn-outline" data-action="close-modal">Cancelar</button>
-          <button class="btn btn-danger" data-action="confirm-delete-user" data-id="${esc(user.id)}">Remover</button>
+        <div class="modal-actions ui-dialog-footer">
+          ${uiButton({
+            text: 'Cancelar',
+            variant: 'outline',
+            attrs: 'data-action="close-modal"'
+          })}
+          ${uiButton({
+            text: 'Remover usuário',
+            icon: 'trash',
+            variant: 'destructive',
+            attrs: `data-action="confirm-delete-user" data-id="${esc(user.id)}"`
+          })}
         </div>
       </section>
     </div>`;
